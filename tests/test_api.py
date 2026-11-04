@@ -71,3 +71,14 @@ def test_delete_memory(client):
     assert client.delete(f"/memories/{mid}").status_code == 404
     entries = client.get("/activity").json()
     assert any(e["kind"] == "memory" for e in entries)
+
+
+def test_chat_network_error_answers_honestly(client, monkeypatch):
+    import httpx
+
+    async def boom(messages):
+        raise httpx.ConnectError("no route")
+
+    monkeypatch.setattr(api, "think", boom)
+    reply = client.post("/chat", json={"message": "hello"}).json()["reply"]
+    assert "reach the model" in reply.lower()
