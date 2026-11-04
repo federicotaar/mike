@@ -71,11 +71,12 @@ struct OnboardingView: View {
                     let key = groqKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
                     Task {
                         let verdict = await GroqClient.validate(key: key)
-                        if verdict.hasPrefix("Key works") {
-                            KeychainStore.save(key, account: KeychainStore.groqKey)
-                            groqSaved = true
+                        if verdict.hasPrefix("Chat works") {
+                            groqSaved = KeychainStore.save(key, account: KeychainStore.groqKey)
+                            groqStatus = groqSaved ? verdict : "Chat worked, but the key could not be saved securely. Try again."
+                        } else {
+                            groqStatus = verdict
                         }
-                        groqStatus = verdict
                         groqBusy = false
                     }
                 }
@@ -83,9 +84,8 @@ struct OnboardingView: View {
                 .disabled(groqBusy || groqKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 Button("Save without testing") {
                     let key = groqKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
-                    KeychainStore.save(key, account: KeychainStore.groqKey)
-                    groqSaved = true
-                    groqStatus = "Saved, not tested. If the key is wrong, chat will show Groq's error."
+                    groqSaved = KeychainStore.save(key, account: KeychainStore.groqKey)
+                    groqStatus = groqSaved ? "Saved, not tested. If the key is wrong, chat will show Groq's error." : "The key could not be saved securely. Try again."
                 }
                 .buttonStyle(.bordered)
                 .disabled(groqBusy || groqKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -126,8 +126,7 @@ struct OnboardingView: View {
                 .buttonStyle(.bordered)
                 .disabled(backendBusy || backendURLInput.isEmpty)
                 Button("Use backend") {
-                    saveBackend()
-                    store.select(.backend); dismiss()
+                    if saveBackend() { store.select(.backend); dismiss() }
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(URL(string: backendURLInput)?.scheme != "https")
@@ -144,23 +143,31 @@ struct OnboardingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    private func saveBackend() {
-        UserDefaults.standard.set(backendURLInput, forKey: "mike.baseURL")
+    @discardableResult
+    private func saveBackend() -> Bool {
         let token = backendTokenInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !token.isEmpty { KeychainStore.save(token, account: KeychainStore.backendToken) }
+        if !token.isEmpty && !KeychainStore.save(token, account: KeychainStore.backendToken) {
+            backendStatus = "The token could not be saved securely. Try again."
+            return false
+        }
+        UserDefaults.standard.set(backendURLInput, forKey: "mike.baseURL")
+        return true
     }
 
     private func testBackend() async -> String {
         guard let url = URL(string: backendURLInput), url.scheme == "https" else {
             return "Enter a full HTTPS URL first."
         }
-        saveBackend()
+        guard saveBackend() else { return "The token could not be saved securely. Try again." }
         var req = URLRequest(url: url.appendingPathComponent("status"))
         req.timeoutInterval = 15
         let token = backendTokenInput.trimmingCharacters(in: .whitespacesAndNewlines)
         if !token.isEmpty { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         do {
-            let (_, resp) = try await URLSession.shared.data(for: req)
+            let session = URLSession(configuration: .ephemeral,
+                                     delegate: SameHostOnlySession(originalHost: url.host), delegateQueue: nil)
+            defer { session.finishTasksAndInvalidate() }
+            let (_, resp) = try await session.data(for: req)
             guard let http = resp as? HTTPURLResponse else { return "No response from that URL." }
             if http.statusCode == 401 { return "The backend rejected the token." }
             return (200..<300).contains(http.statusCode)
