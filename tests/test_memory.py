@@ -55,3 +55,10 @@ def test_prune_activity_keeps_newest(tmp_path):
     remaining = m.recent_activity(limit=100)
     assert len(remaining) == 3
     assert remaining[0]["summary"] == "msg 9"
+
+
+def test_remember_rejects_unknown_kind(tmp_path):
+    import pytest
+    m = Memory(str(tmp_path / "t.db"))
+    with pytest.raises(ValueError):
+        m.remember("secret", "should not store")
