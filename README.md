@@ -95,6 +95,16 @@ connected, no key entered):
 - [Approvals](https://github.com/federicotaar/mike/releases/download/sim-evidence/APPROVALS.png)
 - [Activity](https://github.com/federicotaar/mike/releases/download/sim-evidence/ACTIVITY.png)
 
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - how the app and the core fit together
+- [Setup](docs/SETUP.md) - install the app, run the core
+- [Core API](docs/API.md) - every endpoint the app uses
+- [Safety model](docs/SAFETY.md) - the rules Mike cannot break
+- [Testing](docs/TESTING.md) - what is tested and how
+- [Roadmap](docs/ROADMAP.md) - planned work, honestly labeled
+- [Changelog](CHANGELOG.md)
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
