@@ -20,15 +20,21 @@ enum KeychainStore {
     static let groqKey = "groq-api-key"
     static let backendToken = "backend-token"
 
-    static func save(_ value: String, account: String) {
+    @discardableResult
+    static func save(_ value: String, account: String) -> Bool {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
                                     kSecAttrService as String: service,
                                     kSecAttrAccount as String: account]
-        SecItemDelete(query as CFDictionary)
-        var attrs = query
-        attrs[kSecValueData as String] = Data(value.utf8)
-        attrs[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        SecItemAdd(attrs as CFDictionary, nil)
+        let attrs: [String: Any] = [
+            kSecValueData as String: Data(value.utf8),
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        let updated = SecItemUpdate(query as CFDictionary, attrs as CFDictionary)
+        if updated == errSecSuccess { return true }
+        guard updated == errSecItemNotFound else { return false }
+        var newItem = query
+        attrs.forEach { newItem[$0.key] = $0.value }
+        return SecItemAdd(newItem as CFDictionary, nil) == errSecSuccess
     }
 
     static func load(_ account: String) -> String? {
@@ -54,8 +60,9 @@ enum KeychainStore {
     /// Keychain once and remove the plaintext copy. Runs on every launch; cheap.
     static func migrateLegacyToken() {
         if let legacy = UserDefaults.standard.string(forKey: "mike.token"), !legacy.isEmpty {
-            if load(backendToken) == nil { save(legacy, account: backendToken) }
-            UserDefaults.standard.removeObject(forKey: "mike.token")
+            if load(backendToken) != nil || save(legacy, account: backendToken) {
+                UserDefaults.standard.removeObject(forKey: "mike.token")
+            }
         }
     }
 }
