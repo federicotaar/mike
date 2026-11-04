@@ -14,7 +14,7 @@ jobs:
         run: |
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
           { echo "### Harness toolchain"; echo '```'; xcodebuild -version; echo "iphonesimulator SDK: $(xcrun --sdk iphonesimulator --show-sdk-version)"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-      - name: Compile app for the iOS simulator (6 variants)
+      - name: Compile app for the iOS simulator (8 variants)
         run: |
           set -euo pipefail
           cd ios/Sources/Mike
@@ -26,6 +26,7 @@ jobs:
               *.swift -o "/tmp/MikeSim_$NAME"
             echo "built $NAME"
           }
+          build_variant BACKEND_PAUSED -D SIM_TAB_ACTIVITY -D SIM_FORCE_BACKEND -D SIM_BACKEND_PAUSED
           build_variant CHAT -D SIM_FORCE_GROQ
           build_variant APPROVALS -D SIM_TAB_APPROVALS -D SIM_FORCE_GROQ
           build_variant ACTIVITY -D SIM_TAB_ACTIVITY -D SIM_FORCE_GROQ
@@ -57,7 +58,7 @@ jobs:
           echo "simulator runtime: $RUNTIME (Liquid Glass pixels are real only on iOS 26+)"
           { echo "### Simulator runtime"; echo '```'; echo "$RUNTIME"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           xcrun simctl boot "$DEV" || true
-          for TAB in CHAT APPROVALS ACTIVITY SETTINGS ONBOARDING LOCALCHAT SETTINGS_BUNDLED; do
+          for TAB in BACKEND_PAUSED CHAT APPROVALS ACTIVITY SETTINGS ONBOARDING LOCALCHAT SETTINGS_BUNDLED; do
             APP="/tmp/MikeSim_$TAB.app"
             mkdir -p "$APP"
             cp "/tmp/MikeSim_$TAB" "$APP/MikeSim"
@@ -115,4 +116,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create sim-evidence --title "Simulator screenshots (UI evidence)" --notes "Automated simulator captures for review - not a Mike release. Safe to delete." --latest=false || true
-          gh release upload sim-evidence shots/CHAT.png shots/APPROVALS.png shots/ACTIVITY.png shots/SETTINGS.png shots/ONBOARDING.png shots/LOCALCHAT.png shots/SETTINGS_BUNDLED.png --clobber
+          gh release upload sim-evidence shots/BACKEND_PAUSED.png shots/CHAT.png shots/APPROVALS.png shots/ACTIVITY.png shots/SETTINGS.png shots/ONBOARDING.png shots/LOCALCHAT.png shots/SETTINGS_BUNDLED.png --clobber
