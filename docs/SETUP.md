@@ -20,7 +20,7 @@ git clone https://github.com/federicotaar/mike.git
 cd mike
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
+[ -f .env ] || cp .env.example .env
 ```
 
 Edit `.env`:
@@ -32,7 +32,7 @@ Edit `.env`:
 | `GROQ_MODEL` | Model override | No (default `openai/gpt-oss-120b`) |
 | `NTFY_TOPIC` | ntfy.sh topic for push | No |
 | `DB_PATH` | SQLite location | No (default `./mike.db`) |
-| `HOST` / `PORT` | Bind address | No (default `127.0.0.1:8787`) |
+| `HOST` / `PORT` | Used by `python -m agent.main` | No (default `127.0.0.1:8787`); `run.sh` explicitly binds loopback |
 | `AGENT_NAME` | Name Mike uses for itself | No |
 | `APPROVAL_REQUIRED` | Enforce approvals | No (default true - keep it) |
 
