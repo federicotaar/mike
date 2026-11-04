@@ -7,6 +7,7 @@ from agent import api
 
 def test_tilde_database_path(tmp_path, monkeypatch):
     monkeypatch.setenv('HOME', str(tmp_path))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path))  # Windows expanduser uses this, not HOME.
     m = Memory('~/data/mike.db')
     assert (tmp_path / 'data/mike.db').exists()
     m.db.close()
