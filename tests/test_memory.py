@@ -25,3 +25,12 @@ def test_forget_deletes_for_good(tmp_path):
     assert all(t != "lives in Ferrara" for _, _, t in m.recall())
     # deleting twice is a real False, not a fake ok
     assert m.forget(mid) is False
+
+
+def test_recall_filters_by_kind(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.remember("preference", "short answers")
+    m.remember("fact", "has an iPhone 13")
+    prefs = m.recall(kind="preference")
+    assert [t for _, _, t in prefs] == ["short answers"]
+    assert len(m.recall()) == 2
