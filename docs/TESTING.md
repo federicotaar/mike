@@ -29,7 +29,7 @@ The suite covers the app's contract with the core:
 - `ios/UITest/*.yaml` - maestro flows (keyboard, notifications, proactive
   greeting) run by `keyboard-uitest.yml`, `notif-smoke.yml`
 - `sim-screenshots.yml` - automated UI captures used as visual evidence
-- `build-ipa.yml` - produces the signed `Mike-iPhone.ipa` release artifact
+- `build-ipa.yml` - produces an unsigned `Mike-iPhone.ipa` release artifact for sideload signing
 
 Known unverified area: on-device model memory/performance on a physical
 iPhone 13 (simulator runs pass; device testing is tracked in the README).
