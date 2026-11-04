@@ -101,6 +101,15 @@ async def decide_approval(approval_id: int, body: ApprovalDecision):
     return {"ok": True}
 
 
+@app.delete("/memories/{memory_id}")
+async def delete_memory(memory_id: int):
+    """The user owns their memory: delete one for good, with a real 404."""
+    if not mem().forget(memory_id):
+        raise HTTPException(status_code=404, detail="no memory with that id")
+    mem().log_activity("memory", f"deleted memory #{memory_id}")
+    return {"deleted": True}
+
+
 @app.get("/activity")
 async def activity():
     return mem().recent_activity()
