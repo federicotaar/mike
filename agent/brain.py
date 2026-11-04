@@ -12,12 +12,14 @@ Reference numbers, checked 25 Oct 2026, Groq free tier: ~1,000 requests/day,
 can be added later, each only after the user's explicit yes.
 """
 from __future__ import annotations
+import os
+
 import httpx
 
 from .config import settings
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "openai/gpt-oss-120b"
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")  # free-tier model, overridable
 
 
 class QuotaSpent(RuntimeError):
