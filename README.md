@@ -4,7 +4,7 @@
 
 <img src="mike-logo.png" alt="Mike logo" width="180">
 
-**A personal AI agent that lives on your iPhone. Free, honest about what it does, and yours.**
+**A personal AI assistant for phone and desktop. Open source, with clear controls and honest limits.**
 
 ![status](https://img.shields.io/badge/status-v0.4.3%20early-orange)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -14,7 +14,9 @@
 
 ---
 
-Mike is an iPhone app, plus an optional agent core you can run yourself.
+Mike combines an iOS app with a portable Python agent core. Ubuntu, Windows
+and macOS desktop packages are now in development; they are not yet released.
+The iPhone app remains available as a sideloadable IPA.
 On first launch it asks one question: **where should Mike's thinking happen?**
 You pick, and you can change your mind later in Settings - your chats and
 settings stay, and Mike never switches on its own.
@@ -22,12 +24,24 @@ settings stay, and Mike never switches on its own.
 | Mode | What it means | Current implementation status |
 | --- | --- | --- |
 | **Groq API** | Chat replies from Groq's API, direct from the phone. You paste your own key into the app, privately. | **Chat implemented, in device testing.** The key is stored in the iPhone Keychain and used only in requests the app makes to api.groq.com. If Groq returns an error (for example a spent quota) Mike shows it - it never switches providers on its own. Time, recall, approved memory storage and reminder tools are implemented. Physical-device testing is still needed. |
-| **Your own backend** | Connect to a Mike core you run yourself (HTTPS URL + access token). | **Works.** HTTPS is required; the token is stored in the Keychain. Approvals and Activity screens read from your core. |
+| **Your own backend** | Connect to a Mike core you run yourself (HTTPS URL + access token). | **Implemented; latest changes under test.** HTTPS is required; the token is stored in the Keychain. Approvals and Activity screens read from your core. |
 | **On this iPhone** | A small on-device model (candidate: Gemma 4 E2B, which has documented tool calling). | **Experimental.** The runtime and checksum-verified model download are integrated; earlier simulator smoke testing generated replies. Physical iPhone 13 memory usage and speed remain unverified. No download starts before you choose it. |
 
 The app is free, forever. If you use a third-party provider key, that
 account's terms and any costs are between you and them - Mike never changes
 providers, upgrades plans, or spends anything on its own.
+
+## Platform availability
+
+| Platform | Available now | In progress |
+| --- | --- | --- |
+| iPhone | Sideloadable iOS app; Groq, own-backend and experimental local modes | Physical-device verification of the latest changes |
+| Ubuntu | Python core from source | Installable desktop package |
+| Windows | Python core from source | Windows executable |
+| macOS | Python core from source | macOS package |
+
+Desktop package status will be updated only after builds and smoke tests pass.
+No desktop download is implied by this table.
 
 ## What iOS does and doesn't allow
 
