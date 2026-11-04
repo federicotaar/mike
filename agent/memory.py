@@ -146,6 +146,17 @@ class Memory:
             for r in rows
         ]
 
+    def prune_activity(self, keep: int = 1000) -> int:
+        """Bound the activity log: drop all but the newest `keep` rows.
+        Returns how many rows were removed."""
+        cur = self.db.execute(
+            "DELETE FROM activity WHERE id NOT IN "
+            "(SELECT id FROM activity ORDER BY created_at DESC LIMIT ?)",
+            (keep,),
+        )
+        self.db.commit()
+        return cur.rowcount
+
     # ---- paused flag ----------------------------------------------------
     def set_paused(self, paused: bool) -> None:
         self.db.execute(
