@@ -26,8 +26,8 @@ final class AgentStore: ObservableObject {
 
     private func persist() {
         try? JSONEncoder().encode(approvals).write(to: approvalsURL, options: .atomic)
-        try? JSONEncoder().encode(Array(activity.suffix(200))).write(to: activityURL, options: .atomic)
-        try? JSONEncoder().encode(Array(memory.suffix(200))).write(to: memoryURL, options: .atomic)
+        try? JSONEncoder().encode(Array(activity.prefix(200))).write(to: activityURL, options: .atomic)
+        try? JSONEncoder().encode(Array(memory.prefix(200))).write(to: memoryURL, options: .atomic)
     }
 
     func log(_ kind: String, _ summary: String) {
