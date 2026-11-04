@@ -62,3 +62,30 @@ def test_remember_rejects_unknown_kind(tmp_path):
     m = Memory(str(tmp_path / "t.db"))
     with pytest.raises(ValueError):
         m.remember("secret", "should not store")
+
+
+def test_shared_connection_serializes_concurrent_writes(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    m = Memory(str(tmp_path / "threads.db"))
+    def write(i):
+        mid = m.remember("fact", f"fact {i}")
+        m.log_activity("test", f"event {i}")
+        return mid
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        ids = list(pool.map(write, range(100)))
+    assert len(set(ids)) == 100
+    assert len(m.recall(limit=200)) == 100
+    assert len(m.recent_activity(limit=200)) == 100
+
+
+def test_concurrent_correction_has_single_winner(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    m = Memory(str(tmp_path / "correction.db"))
+    old = m.remember("fact", "old")
+    def correct(i):
+        try: return m.correct(old, f"new {i}")
+        except ValueError: return None
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        outcomes = list(pool.map(correct, range(20)))
+    assert sum(v is not None for v in outcomes) == 1
+    assert len(m.recall()) == 1
