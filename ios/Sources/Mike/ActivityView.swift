@@ -7,7 +7,11 @@ struct ActivityView: View {
     @State private var remote: [ActivityEntry] = []
     @State private var showStopConfirm = false
     @State private var loadFailed = false
+    #if SIM_BACKEND_PAUSED
+    @State private var paused: Bool? = true
+    #else
     @State private var paused: Bool?
+    #endif
     @State private var controlError: String?
     @State private var changingState = false
 
@@ -101,6 +105,13 @@ struct ActivityView: View {
     }
 
     private func reload() async {
+        #if SIM_BACKEND_PAUSED
+        // Simulator-only UI evidence fixture; never compiled into release builds.
+        paused = true
+        remote = []
+        loadFailed = false
+        return
+        #endif
         do {
             remote = try await api.activity()
             paused = try await api.status().paused
