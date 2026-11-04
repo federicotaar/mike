@@ -107,6 +107,12 @@ async def pending_approvals():
     return mem().pending_approvals()
 
 
+@app.get("/approvals")
+async def approvals_history():
+    """Full approval record (pending, approved, denied) for the Activity tab."""
+    return mem().approvals_history()
+
+
 @app.post("/approvals/{approval_id}")
 async def decide_approval(approval_id: int, body: ApprovalDecision):
     if not mem().decide_approval(approval_id, body.approve):
