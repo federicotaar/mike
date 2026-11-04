@@ -44,7 +44,8 @@ MEMORY_KINDS = {"preference", "fact", "feedback"}
 class Memory:
     def __init__(self, path: str):
         if path != ":memory:":
-            parent = Path(path).expanduser().parent
+            path = str(Path(path).expanduser())
+            parent = Path(path).parent
             if str(parent) not in ("", "."):
                 parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path, check_same_thread=False)
@@ -54,6 +55,8 @@ class Memory:
     def remember(self, kind: str, text: str) -> int:
         if kind not in MEMORY_KINDS:
             raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
+        if not text.strip():
+            raise ValueError("memory text must not be blank")
         cur = self.db.execute(
             "INSERT INTO memories (kind, text, created_at) VALUES (?, ?, ?)",
             (kind, text, time.time()),
@@ -84,9 +87,20 @@ class Memory:
 
     def correct(self, old_id: int, new_text: str) -> int:
         """User corrected something: keep history, point old at new."""
-        new_id = self.remember("preference", new_text)
-        self.db.execute("UPDATE memories SET superseded_by=? WHERE id=?", (new_id, old_id))
-        self.db.commit()
+        row = self.db.execute(
+            "SELECT kind FROM memories WHERE id=? AND superseded_by IS NULL", (old_id,)
+        ).fetchone()
+        if row is None:
+            raise ValueError("no active memory with that id")
+        if not new_text.strip():
+            raise ValueError("memory text must not be blank")
+        with self.db:
+            cur = self.db.execute(
+                "INSERT INTO memories (kind, text, created_at) VALUES (?, ?, ?)",
+                (row[0], new_text, time.time()),
+            )
+            new_id = cur.lastrowid
+            self.db.execute("UPDATE memories SET superseded_by=? WHERE id=?", (new_id, old_id))
         return new_id
 
     # ---- approval queue ----------------------------------------------
@@ -154,6 +168,8 @@ class Memory:
     def prune_activity(self, keep: int = 1000) -> int:
         """Bound the activity log: drop all but the newest `keep` rows.
         Returns how many rows were removed."""
+        if keep < 0:
+            raise ValueError("keep must not be negative")
         cur = self.db.execute(
             "DELETE FROM activity WHERE id NOT IN "
             "(SELECT id FROM activity ORDER BY created_at DESC LIMIT ?)",
