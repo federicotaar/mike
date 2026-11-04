@@ -1,0 +1,10 @@
+# Consistent line endings and diffs across machines.
+* text=auto eol=lf
+
+*.png binary
+*.ipa binary
+*.pyc binary
+
+# GitHub language stats: the SwiftUI app is the project, workflows are not.
+.github/** linguist-vendored
+docs/** linguist-documentation
