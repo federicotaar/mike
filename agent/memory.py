@@ -64,6 +64,12 @@ class Memory:
         )
         return rows.fetchall()
 
+    def forget(self, memory_id: int) -> bool:
+        """User deleted a memory for good. Returns False when no such memory."""
+        cur = self.db.execute("DELETE FROM memories WHERE id=?", (memory_id,))
+        self.db.commit()
+        return cur.rowcount == 1
+
     def correct(self, old_id: int, new_text: str) -> int:
         """User corrected something: keep history, point old at new."""
         new_id = self.remember("preference", new_text)
