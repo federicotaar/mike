@@ -46,6 +46,7 @@ enum AgentLoop {
         let session = URLSession(configuration: .ephemeral,
                                  delegate: SameHostOnlySession(originalHost: "api.groq.com"),
                                  delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         guard (200..<300).contains(http.statusCode) else {
