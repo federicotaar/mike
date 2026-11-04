@@ -12,7 +12,7 @@ import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from .brain import ProviderNotConfigured, QuotaSpent, think
+from .brain import InvalidProviderResponse, ProviderNotConfigured, QuotaSpent, think
 from .config import settings
 from .memory import Memory
 
@@ -115,6 +115,8 @@ async def chat(body: ChatIn):
         reply = "I'm out of free requests for today. I'll be back at full speed tomorrow."
     except ProviderNotConfigured:
         reply = "I don't have an approved model key yet. Ask me again once that's set up."
+    except InvalidProviderResponse:
+        reply = "The model returned no usable reply. Try again in a moment."
     except httpx.HTTPError:
         reply = "I can't reach the model right now. Check the connection and try again in a moment."
     mem().log_activity("chat", body.message[:140])
