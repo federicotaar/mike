@@ -31,13 +31,19 @@ if kcOK {
     check("migration moves token to Keychain", KeychainStore.load(KeychainStore.backendToken) == "legacy-secret-123")
     KeychainStore.save("abc", account: KeychainStore.groqKey)
     check("keychain roundtrip", KeychainStore.load(KeychainStore.groqKey) == "abc")
+    check("keychain updates existing credential", KeychainStore.save("updated", account: KeychainStore.groqKey) && KeychainStore.load(KeychainStore.groqKey) == "updated")
     KeychainStore.delete(KeychainStore.groqKey)
     check("keychain delete", KeychainStore.load(KeychainStore.groqKey) == nil)
     KeychainStore.delete(KeychainStore.backendToken)
 } else {
     print("SKIP keychain value checks: no keychain access group in ad-hoc sim process (device-covered)")
 }
-check("migration deletes UserDefaults copy", UserDefaults.standard.string(forKey: "mike.token") == nil)
+if kcOK {
+    check("migration deletes UserDefaults copy after secure save", UserDefaults.standard.string(forKey: "mike.token") == nil)
+} else {
+    check("failed secure migration preserves legacy token", UserDefaults.standard.string(forKey: "mike.token") == "legacy-secret-123")
+    UserDefaults.standard.removeObject(forKey: "mike.token")
+}
 
 // 2. Redirect policy fail-closed
 func req(_ s: String) -> URLRequest { URLRequest(url: URL(string: s)!) }
