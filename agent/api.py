@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .brain import ProviderNotConfigured, QuotaSpent, think
 from .config import settings
@@ -52,7 +52,7 @@ class ChatIn(BaseModel):
 
 
 class FeedbackIn(BaseModel):
-    text: str
+    text: str = Field(min_length=1)
 
 
 class ApprovalDecision(BaseModel):
