@@ -25,6 +25,12 @@ jobs:
         run: python -m desktop.smoke
       - name: Package preview
         run: python packaging/build_desktop.py
+      - name: Linux packaged GUI smoke
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python packaging/smoke_frozen.py
+      - name: Native packaged GUI smoke
+        if: runner.os != 'Linux'
+        run: python packaging/smoke_frozen.py
       - uses: actions/upload-artifact@v4
         with:
           name: Mike-${{ runner.os }}-preview
