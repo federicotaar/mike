@@ -4,6 +4,8 @@ Every endpoint reads or writes real state in Memory. Where a capability is
 not built yet, the API says so instead of pretending.
 """
 from __future__ import annotations
+from pathlib import Path
+
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -20,6 +22,17 @@ async def require_token(authorization: str = Header(default="")):
     """
     if settings.api_token and authorization != f"Bearer {settings.api_token}":
         raise HTTPException(status_code=401, detail="bad or missing bearer token")
+
+
+VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
+
+
+def core_version() -> str:
+    """Version shown to the app comes from the repo's VERSION file, not a constant."""
+    try:
+        return VERSION_FILE.read_text().strip()
+    except OSError:
+        return "unknown"
 
 
 app = FastAPI(title="mike", version="0.1.0", dependencies=[Depends(require_token)])
@@ -53,6 +66,7 @@ async def status():
         # Honest null: per-day quota tracking is not implemented yet.
         "quotaRemainingToday": None,
         "paused": mem().is_paused(),
+        "version": core_version(),
     }
 
 
