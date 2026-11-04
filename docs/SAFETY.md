@@ -1,46 +1,33 @@
-# Safety model
+# Safety and current limits
 
-Mike is an agent that can act, so the rules it cannot break live in code the
-user owns - not in a prompt the model can talk its way around.
+## Implemented boundaries
 
-## Always ask first
+- Groq-mode phone tools allow time and memory lookup without approval.
+  Saving a memory or scheduling a reminder queues a local approval first.
+- The Python core has a separate approval queue. Approving an entry records
+  a decision; it does not execute a message, purchase, or public post.
+- Money, messages, public posts and new account permissions are not tools
+  currently available to Mike. `guardrails.py` lists sensitive action names,
+  but that list is not a complete enforcement layer for future tools.
+- Self-edit execution unconditionally refuses to run. No model-generated
+  code is executed by the core. Isolation and user-reviewed merging are planned.
+- Keys and backend tokens use the iPhone Keychain. Backend connections
+  require HTTPS and refuse cross-host redirects.
 
-`agent/guardrails.py` lists the actions that need an explicit yes through
-the approvals inbox, every time:
+## Data ownership
 
-- `send_message` - texting or emailing anyone as the user
-- `spend` - any payment, purchase, booking, or credits
-- `post_public` - posting anything publicly
-- `grant_permission` - new accounts, scopes, or access
-- `delete_data` - removing memories, files, or messages
+The phone keeps its own JSON memory and activity files. The optional core
+uses a separate SQLite database. They are not synced. The core provides a
+memory deletion endpoint; an in-app memory editor is not implemented.
+Activity is an ordinary local record, not a tamper-proof audit log.
 
-There is no "remember my yes" for these. Each action asks again.
+The backend stop endpoint pauses backend chat. It does not cancel phone
+notifications or stop the phone's direct Groq/on-device provider. iOS local
+notifications and speaking on reopen are limited proactivity, not an
+always-running agent. Physical iPhone model performance is still unverified.
 
-## The user can inspect and undo
+## Provider and cost limits
 
-- **Memory** is a plain SQLite database. The app shows what Mike knows, and
-  the user can correct it (old entries stay in history, superseded) or
-  delete it for good (`DELETE /memories/{id}`).
-- **Activity log** records everything Mike does; it cannot erase it.
-- **Stop button** pauses the agent immediately (`POST /stop`); chat then
-  answers honestly that Mike is paused.
-
-## Self-improvement is disabled until it is safe
-
-`agent/selfedit.py` refuses to execute, unconditionally, until a real
-isolated sandbox exists. Model-generated code never runs on the user's
-machine with the server's network access and secrets. `guardrails.py` is on
-the protected list: the self-edit loop may never change its own rules.
-
-## Provider discipline
-
-Mike uses exactly one inference provider, chosen and approved by the user.
-When a free quota is spent, Mike says so and stops. It never moves the
-user's data to another provider, never upgrades a plan, never falls back to
-anything paid.
-
-## Platform honesty
-
-iOS does not allow an always-running agent. Mike's proactivity is scheduled
-local notifications and speaking first on reopen - the app says this plainly
-instead of pretending otherwise.
+No provider fallback or plan upgrade is performed. Use only the free-tier
+account you choose. Availability and quota are controlled by the provider;
+Mike cannot guarantee a model remains free or available forever.
