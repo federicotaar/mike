@@ -92,3 +92,11 @@ def test_approvals_history_endpoint(client):
     history = client.get("/approvals").json()
     assert len(history) == 1
     assert history[0]["status"] == "denied"
+
+
+def test_empty_feedback_rejected(client):
+    assert client.post("/feedback", json={"text": ""}).status_code == 422
+
+
+def test_empty_chat_message_rejected(client):
+    assert client.post("/chat", json={"message": ""}).status_code == 422
