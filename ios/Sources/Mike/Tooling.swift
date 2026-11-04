@@ -214,8 +214,8 @@ enum Tooling {
         case "schedule_reminder":
             let text = args["text"] as? String ?? ""
             let at = args["at"] as? String ?? ""
-            guard let date = parseDate(at) else {
-                store.log("approval", "Approved reminder had an unreadable date; nothing scheduled.")
+            guard let date = parseDate(at), date > Date() else {
+                store.log("approval", "Approved reminder time is invalid or has passed; nothing scheduled.")
                 return
             }
             scheduleNotification(text: text, at: date, store: store)
@@ -225,12 +225,20 @@ enum Tooling {
     }
 
     static func scheduleNotification(text: String, at date: Date, store: AgentStore) {
+        guard date > Date() else {
+            store.log("approval", "Reminder time has passed; nothing scheduled.")
+            return
+        }
         #if canImport(UserNotifications)
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 guard granted else {
                     store.log("approval", "Notifications are off for Mike, so the reminder could not be set. Enable them in iPhone Settings > Mike.")
+                    return
+                }
+                guard date > Date() else {
+                    store.log("approval", "Reminder time passed while waiting for notification permission; nothing scheduled.")
                     return
                 }
                 let content = UNMutableNotificationContent()
