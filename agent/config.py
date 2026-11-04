@@ -8,16 +8,34 @@ from dotenv import load_dotenv
 load_dotenv()  # reads .env in the working directory when present
 
 
+def _as_bool(value: str, default: bool) -> bool:
+    """Parse common truthy/falsy spellings; fall back to the default."""
+    v = value.strip().lower()
+    if v in ("1", "true", "yes", "on"):
+        return True
+    if v in ("0", "false", "no", "off"):
+        return False
+    return default
+
+
+def _as_int(value: str, default: int) -> int:
+    """Parse an int env value; fall back to the default on garbage."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 @dataclass(frozen=True)
 class Settings:
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
     ntfy_topic: str = os.getenv("NTFY_TOPIC", "")
     api_token: str = os.getenv("MIKE_TOKEN", "")
     agent_name: str = os.getenv("AGENT_NAME", "agent")
-    approval_required: bool = os.getenv("APPROVAL_REQUIRED", "true").lower() == "true"
+    approval_required: bool = _as_bool(os.getenv("APPROVAL_REQUIRED", "true"), True)
     db_path: str = os.getenv("DB_PATH", "mike.db")  # repo-local by default; docker sets DB_PATH=/data/agent.db
     host: str = os.getenv("HOST", "127.0.0.1")
-    port: int = int(os.getenv("PORT", "8787"))
+    port: int = _as_int(os.getenv("PORT", "8787"), 8787)
 
 
 settings = Settings()
