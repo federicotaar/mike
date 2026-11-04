@@ -47,6 +47,7 @@ A small FastAPI service for running Mike on the user's own machine:
    the on-device model).
 2. The core binds to 127.0.0.1 and requires a bearer token before any tunnel
    exposes it.
-3. Guardrail actions (messaging, spending, posting, new permissions,
-   deletion) pass through the approvals flow - the agent cannot approve its
-   own requests, and cannot edit `guardrails.py`.
+3. Phone memory/reminder writes wait for an approval. Messaging, spending,
+   public posting and new-account tools are not implemented. The core's
+   guardrail name list is not a complete enforcement layer for future tools.
+   Self-edit execution is disabled; see `SAFETY.md` for implemented limits.
