@@ -5,6 +5,7 @@ not built yet, the API says so instead of pretending.
 """
 from __future__ import annotations
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -35,7 +36,18 @@ def core_version() -> str:
         return "unknown"
 
 
-app = FastAPI(title="mike", version="0.1.0", dependencies=[Depends(require_token)])
+@asynccontextmanager
+async def lifespan(app):
+    from .scheduler import start
+    scheduler = start()
+    try:
+        yield
+    finally:
+        scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="mike", version=core_version(), lifespan=lifespan,
+              dependencies=[Depends(require_token)])
 # Created lazily: importing this module must not require a writable data dir.
 memory: Memory | None = None
 
