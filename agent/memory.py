@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS kv (
 """
 
 
+MEMORY_KINDS = {"preference", "fact", "feedback"}
+
+
 class Memory:
     def __init__(self, path: str):
         if path != ":memory:":
@@ -49,6 +52,8 @@ class Memory:
 
     # ---- memories: how it learns -------------------------------------
     def remember(self, kind: str, text: str) -> int:
+        if kind not in MEMORY_KINDS:
+            raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
         cur = self.db.execute(
             "INSERT INTO memories (kind, text, created_at) VALUES (?, ?, ?)",
             (kind, text, time.time()),
