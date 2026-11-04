@@ -9,6 +9,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 import time
+import threading
+from functools import wraps
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS memories (
@@ -41,6 +43,15 @@ CREATE TABLE IF NOT EXISTS kv (
 MEMORY_KINDS = {"preference", "fact", "feedback"}
 
 
+def synchronized(method):
+    """One connection serves API requests and worker threads; serialize transactions."""
+    @wraps(method)
+    def locked(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return locked
+
+
 class Memory:
     def __init__(self, path: str):
         if path != ":memory:":
@@ -48,10 +59,12 @@ class Memory:
             parent = Path(path).parent
             if str(parent) not in ("", "."):
                 parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.RLock()
         self.db = sqlite3.connect(path, check_same_thread=False)
         self.db.executescript(SCHEMA)
 
     # ---- memories: how it learns -------------------------------------
+    @synchronized
     def remember(self, kind: str, text: str) -> int:
         if kind not in MEMORY_KINDS:
             raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
@@ -64,6 +77,7 @@ class Memory:
         self.db.commit()
         return cur.lastrowid
 
+    @synchronized
     def recall(self, limit: int = 50, kind: str | None = None) -> list[tuple[int, str, str]]:
         if kind is None:
             rows = self.db.execute(
@@ -79,12 +93,14 @@ class Memory:
             )
         return rows.fetchall()
 
+    @synchronized
     def forget(self, memory_id: int) -> bool:
         """User deleted a memory for good. Returns False when no such memory."""
         cur = self.db.execute("DELETE FROM memories WHERE id=?", (memory_id,))
         self.db.commit()
         return cur.rowcount == 1
 
+    @synchronized
     def correct(self, old_id: int, new_text: str) -> int:
         """User corrected something: keep history, point old at new."""
         row = self.db.execute(
@@ -104,6 +120,7 @@ class Memory:
         return new_id
 
     # ---- approval queue ----------------------------------------------
+    @synchronized
     def request_approval(self, summary: str, detail: str) -> int:
         cur = self.db.execute(
             "INSERT INTO approvals (summary, detail, created_at) VALUES (?, ?, ?)",
@@ -112,6 +129,7 @@ class Memory:
         self.db.commit()
         return cur.lastrowid
 
+    @synchronized
     def pending_approvals(self) -> list[dict]:
         rows = self.db.execute(
             "SELECT id, summary, detail, created_at FROM approvals "
@@ -123,6 +141,7 @@ class Memory:
             for r in rows
         ]
 
+    @synchronized
     def approvals_history(self, limit: int = 100) -> list[dict]:
         """All approvals, newest first, any status - the full record, not just pending."""
         rows = self.db.execute(
@@ -136,6 +155,7 @@ class Memory:
             for r in rows
         ]
 
+    @synchronized
     def decide_approval(self, approval_id: int, approved: bool) -> bool:
         """Returns False when no such pending approval exists."""
         cur = self.db.execute(
@@ -146,6 +166,7 @@ class Memory:
         return cur.rowcount == 1
 
     # ---- activity log --------------------------------------------------
+    @synchronized
     def log_activity(self, kind: str, summary: str) -> int:
         cur = self.db.execute(
             "INSERT INTO activity (kind, summary, created_at) VALUES (?, ?, ?)",
@@ -154,6 +175,7 @@ class Memory:
         self.db.commit()
         return cur.lastrowid
 
+    @synchronized
     def recent_activity(self, limit: int = 100) -> list[dict]:
         rows = self.db.execute(
             "SELECT id, kind, summary, created_at FROM activity "
@@ -165,6 +187,7 @@ class Memory:
             for r in rows
         ]
 
+    @synchronized
     def prune_activity(self, keep: int = 1000) -> int:
         """Bound the activity log: drop all but the newest `keep` rows.
         Returns how many rows were removed."""
@@ -179,6 +202,7 @@ class Memory:
         return cur.rowcount
 
     # ---- paused flag ----------------------------------------------------
+    @synchronized
     def set_paused(self, paused: bool) -> None:
         self.db.execute(
             "INSERT INTO kv (key, value) VALUES ('paused', ?) "
@@ -187,6 +211,7 @@ class Memory:
         )
         self.db.commit()
 
+    @synchronized
     def is_paused(self) -> bool:
         row = self.db.execute("SELECT value FROM kv WHERE key='paused'").fetchone()
         return bool(row and row[0] == "1")
