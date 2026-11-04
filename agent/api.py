@@ -4,6 +4,7 @@ Every endpoint reads or writes real state in Memory. Where a capability is
 not built yet, the API says so instead of pretending.
 """
 from __future__ import annotations
+import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
@@ -73,6 +74,8 @@ async def chat(body: ChatIn):
         reply = "I'm out of free requests for today. I'll be back at full speed tomorrow."
     except ProviderNotConfigured:
         reply = "I don't have an approved model key yet. Ask me again once that's set up."
+    except httpx.HTTPError:
+        reply = "I can't reach the model right now. Check the connection and try again in a moment."
     mem().log_activity("chat", body.message[:140])
     return {"reply": reply}
 
