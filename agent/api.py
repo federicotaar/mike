@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .brain import ProviderNotConfigured, QuotaSpent, think
 from .config import settings
@@ -61,11 +61,25 @@ def mem() -> Memory:
 
 
 class ChatIn(BaseModel):
-    message: str = Field(min_length=1)
+    message: str = Field(min_length=1, max_length=32000)
+
+    @field_validator("message")
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError("message must not be blank")
+        return value
 
 
 class FeedbackIn(BaseModel):
-    text: str = Field(min_length=1)
+    text: str = Field(min_length=1, max_length=4000)
+
+    @field_validator("text")
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError("feedback must not be blank")
+        return value
 
 
 class ApprovalDecision(BaseModel):
