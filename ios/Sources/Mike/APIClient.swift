@@ -55,6 +55,7 @@ final class APIClient: ObservableObject {
         let session = URLSession(configuration: .ephemeral,
                                  delegate: SameHostOnlySession(originalHost: baseURL.host),
                                  delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
         let (data, resp) = try await session.data(for: req)
         guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
@@ -69,8 +70,16 @@ final class APIClient: ObservableObject {
         return try JSONDecoder().decode(Out.self, from: data).reply
     }
 
+    /// The Python API sends Unix seconds, unlike local JSONEncoder's default
+    /// reference-date format. Use this only for backend responses.
+    static func responseDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return decoder
+    }
+
     func pendingApprovals() async throws -> [Approval] {
-        try JSONDecoder().decode([Approval].self, from: try await request("approvals/pending"))
+        try Self.responseDecoder().decode([Approval].self, from: try await request("approvals/pending"))
     }
 
     func answer(_ approval: Approval, approve: Bool) async throws {
@@ -79,11 +88,15 @@ final class APIClient: ObservableObject {
     }
 
     func activity() async throws -> [ActivityEntry] {
-        try JSONDecoder().decode([ActivityEntry].self, from: try await request("activity"))
+        try Self.responseDecoder().decode([ActivityEntry].self, from: try await request("activity"))
     }
 
     func status() async throws -> CoreStatus {
         try JSONDecoder().decode(CoreStatus.self, from: try await request("status"))
+    }
+
+    func startMike() async throws {
+        _ = try await request("start", method: "POST")
     }
 
     func stopMike() async throws {
