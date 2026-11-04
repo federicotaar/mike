@@ -16,8 +16,9 @@ def client(tmp_path, monkeypatch):
 
 def test_status_shape(client):
     s = client.get("/status").json()
-    assert set(s) == {"providerConfigured", "quotaRemainingToday", "paused"}
+    assert set(s) == {"providerConfigured", "quotaRemainingToday", "paused", "version"}
     assert s["paused"] is False
+    assert s["version"] and s["version"] != "unknown"
 
 
 def test_approval_lifecycle(client):
