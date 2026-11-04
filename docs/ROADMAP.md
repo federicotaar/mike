@@ -17,8 +17,9 @@ is claimed as working anywhere else in the repo.
 
 ## Then
 
-- **Memory and tools in Groq mode.** Approvals/activity already work
-  against a self-hosted core; wiring them into direct-Groq mode is planned.
+- **Memory editing and deletion in the phone UI.** Groq mode already has
+  time, recall, approved memory and reminder tools. A memory management
+  screen and sync with the separate optional backend remain unbuilt.
 - **Isolated self-improvement.** Draft change on a branch, tests in a
   networkless throwaway container, user reviews the diff, merge only with
   an explicit yes. Disabled until the container exists (see
