@@ -200,6 +200,12 @@ check("relaunch with unchanged signals stays silent", ProactiveEngine.shouldSpea
 let d2 = ProactiveEngine.signalDigest(approvalIDs: ["a1"], reminderIDs: ["r1", "r2"])
 check("new reminder speaks again", ProactiveEngine.shouldSpeak(currentDigest: d2, defaults: suite) == true)
 
+// Backend timestamps are Unix seconds, not Apple's 2001 reference date.
+let unixFixture = Data("[{\"id\":\"1\",\"kind\":\"chat\",\"summary\":\"hello\",\"time\":1700000000}]".utf8)
+if let entries = try? APIClient.responseDecoder().decode([ActivityEntry].self, from: unixFixture) {
+    check("backend activity date uses Unix epoch", abs(entries[0].time.timeIntervalSince1970 - 1700000000) < 0.01)
+} else { check("backend activity fixture decodes", false) }
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
