@@ -206,6 +206,25 @@ if let entries = try? APIClient.responseDecoder().decode([ActivityEntry].self, f
     check("backend activity date uses Unix epoch", abs(entries[0].time.timeIntervalSince1970 - 1700000000) < 0.01)
 } else { check("backend activity fixture decodes", false) }
 
+// Persistent lists are newest-first and must retain the newest 200 rows.
+let retentionDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+try? FileManager.default.createDirectory(at: retentionDir, withIntermediateDirectories: true)
+let retentionStore = AgentStore(directory: retentionDir)
+for index in 0..<205 {
+    retentionStore.log("test", "entry-\(index)")
+    retentionStore.remember("memory-\(index)")
+}
+let reopenedStore = AgentStore(directory: retentionDir)
+check("relaunch retains newest activity", reopenedStore.activity.first?.summary == "entry-204")
+check("relaunch retains newest memory", reopenedStore.memory.first == "memory-204")
+check("persisted activity is bounded", reopenedStore.activity.count == 200)
+check("persisted memory is bounded", reopenedStore.memory.count == 200)
+try? FileManager.default.removeItem(at: retentionDir)
+let approvalFixture = Data("[{\"id\":\"1\",\"summary\":\"review\",\"detail\":\"test\",\"createdAt\":1700000000,\"status\":\"pending\"}]".utf8)
+if let approvals = try? APIClient.responseDecoder().decode([Approval].self, from: approvalFixture) {
+    check("backend approval date uses Unix epoch", abs(approvals[0].createdAt.timeIntervalSince1970 - 1700000000) < 0.01)
+} else { check("backend approval fixture decodes", false) }
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
