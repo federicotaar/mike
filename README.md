@@ -43,7 +43,7 @@ of them are **planned work, not shipped features**:
 
 No App Store, no paid Apple account:
 
-1. Download `Mike-iPhone.ipa` from [Releases](https://github.com/federicotaranudev/mike/releases).
+1. Download `Mike-iPhone.ipa` from [Releases](https://github.com/federicotaar/mike/releases).
 2. Sideload it with a tool like SideInstaller, Sideloadly or AltStore.
 3. With a free Apple ID the signature expires after 7 days - re-sign weekly (Apple's rule, not ours).
 
@@ -57,7 +57,7 @@ Planned, not built yet: scheduled jobs, and the self-improvement loop below.
 
 ```bash
 set -euo pipefail
-git clone https://github.com/federicotaranudev/mike.git
+git clone https://github.com/federicotaar/mike.git
 cd mike
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -88,12 +88,12 @@ backend" mode at its HTTPS URL.
 Automated simulator captures of the v0.2 UI (fresh-install states, no backend
 connected, no key entered):
 
-- [Setup screen](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/ONBOARDING.png)
-- [Chat (Groq mode selected)](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/CHAT.png)
-- [Chat with on-device mode selected, honestly unavailable](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/LOCALCHAT.png)
-- [Settings](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/SETTINGS.png)
-- [Approvals](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/APPROVALS.png)
-- [Activity](https://github.com/federicotaranudev/mike/releases/download/sim-evidence/ACTIVITY.png)
+- [Setup screen](https://github.com/federicotaar/mike/releases/download/sim-evidence/ONBOARDING.png)
+- [Chat (Groq mode selected)](https://github.com/federicotaar/mike/releases/download/sim-evidence/CHAT.png)
+- [Chat with on-device mode selected, honestly unavailable](https://github.com/federicotaar/mike/releases/download/sim-evidence/LOCALCHAT.png)
+- [Settings](https://github.com/federicotaar/mike/releases/download/sim-evidence/SETTINGS.png)
+- [Approvals](https://github.com/federicotaar/mike/releases/download/sim-evidence/APPROVALS.png)
+- [Activity](https://github.com/federicotaar/mike/releases/download/sim-evidence/ACTIVITY.png)
 
 ## License
 
