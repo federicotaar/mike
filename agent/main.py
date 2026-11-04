@@ -8,7 +8,7 @@ from .scheduler import start
 
 
 def main() -> None:
-    start()
+    # Scheduler startup belongs inside the ASGI event loop, not before uvicorn.
     uvicorn.run("agent.api:app", host=settings.host, port=settings.port)
 
 
