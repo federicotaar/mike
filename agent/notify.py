@@ -12,8 +12,10 @@ async def ping(title: str, body: str, priority: int = 3, tags: list[str] | None 
     if tags:
         headers["Tags"] = ",".join(tags)
     async with httpx.AsyncClient(timeout=15) as client:
-        await client.post(
+        response = await client.post(
             f"https://ntfy.sh/{settings.ntfy_topic}",
             content=body,
             headers=headers,
         )
+
+        response.raise_for_status()
