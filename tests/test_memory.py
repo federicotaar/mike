@@ -16,3 +16,12 @@ def test_correction_supersedes(tmp_path):
     texts = [t for _, _, t in m.recall()]
     assert "wakes at 6:10" in texts
     assert all("8" not in t for t in texts)
+
+
+def test_forget_deletes_for_good(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    mid = m.remember("fact", "lives in Ferrara")
+    assert m.forget(mid) is True
+    assert all(t != "lives in Ferrara" for _, _, t in m.recall())
+    # deleting twice is a real False, not a fake ok
+    assert m.forget(mid) is False
