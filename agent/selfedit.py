@@ -31,7 +31,7 @@ def changed_files(branch: str = "self-edit") -> list[str]:
         ["git", "diff", "--name-only", "main..." + branch],
         capture_output=True, text=True, check=True,
     )
-    return [f for f in out.stdout.split() if f]
+    return [f for f in out.stdout.splitlines() if f]
 
 
 def check_allowed(branch: str = "self-edit") -> None:
