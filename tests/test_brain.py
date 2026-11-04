@@ -30,3 +30,18 @@ def test_configured_model_and_quota_fail_closed(monkeypatch):
     assert len(seen) == 1  # No retry or fallback provider.
     assert seen[0][0] == brain.GROQ_URL
     assert seen[0][1]["json"]["model"] == brain.GROQ_MODEL
+
+
+@pytest.mark.parametrize("payload", [{}, {"choices": []}, {"choices": [{"message": {"content": None}}]}, {"choices": [{"message": {"content": " "}}]}])
+def test_malformed_provider_response_fails_cleanly(monkeypatch, payload):
+    import httpx
+    monkeypatch.setattr(brain, "settings", dataclasses.replace(brain.settings, groq_api_key="test-only"))
+    class Client:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            return httpx.Response(200, json=payload, request=httpx.Request("POST", url))
+    monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
+    with pytest.raises(brain.InvalidProviderResponse):
+        asyncio.run(brain.think([]))
