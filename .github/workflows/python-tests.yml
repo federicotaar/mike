@@ -2,7 +2,7 @@ name: python-tests
 
 on:
   push:
-    paths: [ "agent/**", "tests/**", "requirements*.txt", ".github/workflows/python-tests.yml" ]
+    paths: [ "agent/**", "desktop/**", "tests/**", "requirements*.txt", ".github/workflows/python-tests.yml" ]
   pull_request:
   workflow_dispatch:
 
