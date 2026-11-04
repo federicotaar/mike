@@ -2,10 +2,11 @@
 
 ## Reporting a vulnerability
 
-Do not open a public issue for security problems. Use GitHub's private
-vulnerability reporting on this repository ("Security" tab, "Report a
-vulnerability"). You will get a response as soon as possible; this is a
-solo-maintainer project.
+Do not post secrets, private user data, or exploit details in a public issue.
+If the Security tab offers "Report a vulnerability", use that private route.
+Otherwise, open an issue containing only a request for a private reporting
+channel, with no vulnerability details. Private reporting availability and
+response timing are not guaranteed.
 
 ## Scope that matters most
 
