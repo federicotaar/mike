@@ -48,7 +48,7 @@ def mem() -> Memory:
 
 
 class ChatIn(BaseModel):
-    message: str
+    message: str = Field(min_length=1)
 
 
 class FeedbackIn(BaseModel):
