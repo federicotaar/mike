@@ -7,6 +7,9 @@ struct ActivityView: View {
     @State private var remote: [ActivityEntry] = []
     @State private var showStopConfirm = false
     @State private var loadFailed = false
+    @State private var paused: Bool?
+    @State private var controlError: String?
+    @State private var changingState = false
 
     var body: some View {
         NavigationStack {
@@ -23,17 +26,27 @@ struct ActivityView: View {
             .toolbar {
                 if store.provider == .backend {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Stop", role: .destructive) { showStopConfirm = true }
+                        if paused == true {
+                            Button("Resume") { changePausedState(false) }
+                                .disabled(changingState)
+                        } else {
+                            Button("Stop", role: .destructive) { showStopConfirm = true }
+                                .disabled(changingState)
+                        }
                     }
                 }
             }
+            .alert("Couldn't change backend state", isPresented: Binding(
+                get: { controlError != nil }, set: { if !$0 { controlError = nil } })) {
+                Button("OK", role: .cancel) { controlError = nil }
+            } message: { Text(controlError ?? "") }
             .confirmationDialog("Stop Mike?", isPresented: $showStopConfirm, titleVisibility: .visible) {
                 Button("Stop Mike", role: .destructive) {
-                    Task { try? await api.stopMike() }
+                    changePausedState(true)
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Mike pauses everything until you start him again. Nothing keeps running in the background.")
+                Text("Pause chat on your backend until you resume it. This does not cancel phone reminders or pause other providers.")
             }
         }
     }
@@ -72,9 +85,25 @@ struct ActivityView: View {
         }
     }
 
+    private func changePausedState(_ shouldPause: Bool) {
+        guard !changingState else { return }
+        changingState = true
+        Task {
+            defer { changingState = false }
+            do {
+                if shouldPause { try await api.stopMike() }
+                else { try await api.startMike() }
+                await reload()
+            } catch {
+                controlError = "The request failed. Check your backend URL, token and connection, then try again."
+            }
+        }
+    }
+
     private func reload() async {
         do {
             remote = try await api.activity()
+            paused = try await api.status().paused
             loadFailed = false
         } catch {
             loadFailed = true
