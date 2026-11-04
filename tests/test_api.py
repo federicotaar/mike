@@ -116,3 +116,12 @@ def test_owner_mutations_require_token(client, monkeypatch):
     assert client.post("/start").status_code == 401
     assert client.delete("/memories/1").status_code == 401
     assert client.post("/approvals/1", json={"approve": True}).status_code == 401
+
+
+def test_invalid_provider_reply_is_honest(client, monkeypatch):
+    async def broken(messages):
+        raise api.InvalidProviderResponse("bad schema")
+    monkeypatch.setattr(api, "think", broken)
+    response = client.post("/chat", json={"message": "hello"})
+    assert response.status_code == 200
+    assert "no usable reply" in response.json()["reply"]
