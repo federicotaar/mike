@@ -9,3 +9,18 @@ def test_ping_without_topic_is_noop(monkeypatch):
     monkeypatch.setattr(notify, "settings", dataclasses.replace(notify.settings, ntfy_topic=""))
     # Must return without any network call.
     asyncio.run(notify.ping("hi", "there", priority=5, tags=["rocket"]))
+
+
+def test_failed_push_is_not_silent(monkeypatch):
+    import httpx
+    import pytest
+    monkeypatch.setattr(notify, "settings", dataclasses.replace(notify.settings, ntfy_topic="test-only"))
+    class Client:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            return httpx.Response(503, request=httpx.Request("POST", url))
+    monkeypatch.setattr(notify.httpx, "AsyncClient", Client)
+    with pytest.raises(httpx.HTTPStatusError):
+        asyncio.run(notify.ping("test", "not delivered"))
