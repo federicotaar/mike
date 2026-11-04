@@ -56,12 +56,19 @@ class Memory:
         self.db.commit()
         return cur.lastrowid
 
-    def recall(self, limit: int = 50) -> list[tuple[int, str, str]]:
-        rows = self.db.execute(
-            "SELECT id, kind, text FROM memories "
-            "WHERE superseded_by IS NULL ORDER BY created_at DESC LIMIT ?",
-            (limit,),
-        )
+    def recall(self, limit: int = 50, kind: str | None = None) -> list[tuple[int, str, str]]:
+        if kind is None:
+            rows = self.db.execute(
+                "SELECT id, kind, text FROM memories "
+                "WHERE superseded_by IS NULL ORDER BY created_at DESC LIMIT ?",
+                (limit,),
+            )
+        else:
+            rows = self.db.execute(
+                "SELECT id, kind, text FROM memories "
+                "WHERE superseded_by IS NULL AND kind=? ORDER BY created_at DESC LIMIT ?",
+                (kind, limit),
+            )
         return rows.fetchall()
 
     def forget(self, memory_id: int) -> bool:
