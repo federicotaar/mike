@@ -5,6 +5,7 @@ not built yet, the API says so instead of pretending.
 """
 from __future__ import annotations
 from pathlib import Path
+import secrets
 from contextlib import asynccontextmanager
 
 import httpx
@@ -21,7 +22,7 @@ async def require_token(authorization: str = Header(default="")):
     With no MIKE_TOKEN set the core is expected on 127.0.0.1 only (local
     testing). Never expose it on a network without a token.
     """
-    if settings.api_token and authorization != f"Bearer {settings.api_token}":
+    if settings.api_token and not secrets.compare_digest(authorization.encode(), f"Bearer {settings.api_token}".encode()):
         raise HTTPException(status_code=401, detail="bad or missing bearer token")
 
 
