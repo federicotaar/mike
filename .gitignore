@@ -5,3 +5,8 @@ __pycache__/
 *.sqlite3
 .venv/
 .pytest_cache/
+
+# Desktop build output (never commit binaries or local session data)
+build/
+dist/
+*.spec
