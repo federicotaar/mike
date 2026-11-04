@@ -100,3 +100,19 @@ def test_empty_feedback_rejected(client):
 
 def test_empty_chat_message_rejected(client):
     assert client.post("/chat", json={"message": ""}).status_code == 422
+
+
+def test_blank_and_oversized_inputs_rejected(client):
+    assert client.post("/chat", json={"message": " \n"}).status_code == 422
+    assert client.post("/chat", json={"message": "x" * 32001}).status_code == 422
+    assert client.post("/feedback", json={"text": "  "}).status_code == 422
+    assert client.post("/feedback", json={"text": "x" * 4001}).status_code == 422
+
+
+def test_owner_mutations_require_token(client, monkeypatch):
+    import dataclasses
+    monkeypatch.setattr(api, "settings", dataclasses.replace(api.settings, api_token="secret"))
+    assert client.post("/stop").status_code == 401
+    assert client.post("/start").status_code == 401
+    assert client.delete("/memories/1").status_code == 401
+    assert client.post("/approvals/1", json={"approve": True}).status_code == 401
