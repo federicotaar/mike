@@ -26,6 +26,10 @@ class QuotaSpent(RuntimeError):
     """Today's free quota is gone. Say so, try again tomorrow."""
 
 
+class InvalidProviderResponse(RuntimeError):
+    """The provider answered without a usable text reply."""
+
+
 class ProviderNotConfigured(RuntimeError):
     """No approved key yet."""
 
@@ -42,4 +46,10 @@ async def think(messages: list[dict]) -> str:
         if r.status_code in (402, 429):
             raise QuotaSpent("groq free tier limit reached")
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"]
+        try:
+            content = r.json()["choices"][0]["message"]["content"]
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise InvalidProviderResponse("provider returned an invalid chat response") from exc
+        if not isinstance(content, str) or not content.strip():
+            raise InvalidProviderResponse("provider returned no text reply")
+        return content
