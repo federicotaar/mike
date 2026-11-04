@@ -1,6 +1,5 @@
 """Desktop chat without a background server or a paid fallback."""
 from __future__ import annotations
-import asyncio
 from pathlib import Path
 import os
 import httpx
@@ -25,6 +24,7 @@ class DesktopService:
         self.memory = Memory(str(self.directory / "mike.db"))
         # Keys stay in process memory; never persisted in chat, logs or settings.
         self.key = ""
+        self.history: list[dict[str, str]] = []
 
     def chat(self, text: str) -> str:
         if not text.strip() or len(text) > 32000:
@@ -37,7 +37,7 @@ class DesktopService:
         system = "You are Mike. Be concise and honest. You cannot execute actions or set reminders in this desktop preview. Saved facts:\n" + facts
         with httpx.Client(timeout=60, follow_redirects=False) as client:
             response = client.post(GROQ_URL, headers={"Authorization": f"Bearer {self.key.strip()}"},
-                json={"model": GROQ_MODEL, "messages": [{"role": "system", "content": system}, {"role": "user", "content": text}]})
+                json={"model": GROQ_MODEL, "messages": [{"role": "system", "content": system}] + self.history[-20:] + [{"role": "user", "content": text}]})
             if response.status_code in (402, 429):
                 return "Groq refused this request because of an account or quota limit. No fallback was used."
             if response.status_code == 401:
@@ -49,5 +49,7 @@ class DesktopService:
                 raise InvalidProviderResponse("Groq returned no usable reply.") from exc
             if not isinstance(reply, str) or not reply.strip():
                 raise InvalidProviderResponse("Groq returned no usable reply.")
+        self.history.extend([{"role": "user", "content": text}, {"role": "assistant", "content": reply}])
+        self.history = self.history[-20:]
         self.memory.log_activity("chat", "Desktop chat completed")
         return reply
