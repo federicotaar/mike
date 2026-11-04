@@ -19,11 +19,11 @@ On first launch it asks one question: **where should Mike's thinking happen?**
 You pick, and you can change your mind later in Settings - your chats and
 settings stay, and Mike never switches on its own.
 
-| Mode | What it means | Status in v0.2 |
+| Mode | What it means | Current implementation status |
 | --- | --- | --- |
-| **Groq API** | Chat replies from Groq's API, direct from the phone. You paste your own key into the app, privately. | **Chat implemented, in device testing.** The key is stored in the iPhone Keychain and used only in requests the app makes to api.groq.com. If Groq returns an error (for example a spent quota) Mike shows it - it never switches providers on its own. Memory, tools and approvals are not wired in this mode yet. |
+| **Groq API** | Chat replies from Groq's API, direct from the phone. You paste your own key into the app, privately. | **Chat implemented, in device testing.** The key is stored in the iPhone Keychain and used only in requests the app makes to api.groq.com. If Groq returns an error (for example a spent quota) Mike shows it - it never switches providers on its own. Time, recall, approved memory storage and reminder tools are implemented. Physical-device testing is still needed. |
 | **Your own backend** | Connect to a Mike core you run yourself (HTTPS URL + access token). | **Works.** HTTPS is required; the token is stored in the Keychain. Approvals and Activity screens read from your core. |
-| **On this iPhone** | A small on-device model (candidate: Gemma 4 E2B, which has documented tool calling). | **Not yet.** The runtime is still being integrated. If you pick it, Mike says so honestly instead of faking replies, and nothing downloads before you see its exact size. |
+| **On this iPhone** | A small on-device model (candidate: Gemma 4 E2B, which has documented tool calling). | **Experimental.** The runtime and checksum-verified model download are integrated; earlier simulator smoke testing generated replies. Physical iPhone 13 memory usage and speed remain unverified. No download starts before you choose it. |
 
 The app is free, forever. If you use a third-party provider key, that
 account's terms and any costs are between you and them - Mike never changes
@@ -35,9 +35,9 @@ Design boundaries Mike is built around - these are platform rules, and most
 of them are **planned work, not shipped features**:
 
 - Chat works whenever you open the app (Groq or your backend).
-- iOS can deliver **scheduled local notifications** when the app is closed; Mike's use of them is planned, not in this build.
+- iOS can deliver **scheduled local notifications** when the app is closed; Mike implements approved reminders and a greeting on reopen. Earlier simulator checks passed; physical-device testing remains needed.
 - iOS grants **short background windows** at times the system chooses; using them for checks is planned, not in this build.
-- **Not possible:** an always-running agent. If you force-quit the app, it does nothing until you open it again. An on-device model changes where thinking happens, not when iOS allows it.
+- **Not implemented:** an always-running agent. Force-quitting stops app execution until reopen; already scheduled system notifications can still be delivered. An on-device model changes where thinking happens, not when iOS allows it.
 
 ## Install the iPhone app
 
