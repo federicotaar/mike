@@ -61,3 +61,13 @@ def test_desktop_remembers_between_launches(tmp_path):
     assert again.memory.recall()[0][2] == "a fact"
     assert again.memory.is_paused()
     assert again.key == ""
+
+
+def test_desktop_history_is_session_only_and_bounded(tmp_path, monkeypatch):
+    service = DesktopService(tmp_path); service.key = "test"
+    seen = mock_reply(monkeypatch, 200, {"choices": [{"message": {"content": "ok"}}]})
+    for i in range(12): service.chat(f"message {i}")
+    assert len(service.history) == 20
+    assert len(seen[-1][1]["json"]["messages"]) == 22
+    assert service.history[0]["content"] == "message 2"
+    assert DesktopService(tmp_path).history == []
