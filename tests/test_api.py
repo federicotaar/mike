@@ -63,3 +63,11 @@ def test_chat_without_key_fails_closed(client, monkeypatch):
     monkeypatch.setattr(api, "settings", dataclasses.replace(api.settings, groq_api_key=""))
     reply = client.post("/chat", json={"message": "hello"}).json()["reply"]
     assert "model key" in reply.lower()
+
+
+def test_delete_memory(client):
+    mid = api.memory.remember("fact", "temporary fact")
+    assert client.delete(f"/memories/{mid}").json() == {"deleted": True}
+    assert client.delete(f"/memories/{mid}").status_code == 404
+    entries = client.get("/activity").json()
+    assert any(e["kind"] == "memory" for e in entries)
