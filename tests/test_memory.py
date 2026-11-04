@@ -34,3 +34,24 @@ def test_recall_filters_by_kind(tmp_path):
     prefs = m.recall(kind="preference")
     assert [t for _, _, t in prefs] == ["short answers"]
     assert len(m.recall()) == 2
+
+
+def test_approvals_history_includes_decided(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    aid = m.request_approval("text Marco", "reply to Marco")
+    m.decide_approval(aid, True)
+    history = m.approvals_history()
+    assert len(history) == 1
+    assert history[0]["status"] == "approved"
+    assert history[0]["summary"] == "text Marco"
+
+
+def test_prune_activity_keeps_newest(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    for i in range(10):
+        m.log_activity("chat", f"msg {i}")
+    removed = m.prune_activity(keep=3)
+    assert removed == 7
+    remaining = m.recent_activity(limit=100)
+    assert len(remaining) == 3
+    assert remaining[0]["summary"] == "msg 9"
