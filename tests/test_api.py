@@ -83,3 +83,12 @@ def test_chat_network_error_answers_honestly(client, monkeypatch):
     monkeypatch.setattr(api, "think", boom)
     reply = client.post("/chat", json={"message": "hello"}).json()["reply"]
     assert "reach the model" in reply.lower()
+
+
+def test_approvals_history_endpoint(client):
+    api.memory.request_approval("post publicly", "post a status update")
+    pending = client.get("/approvals/pending").json()
+    client.post(f"/approvals/{pending[0]['id']}", json={"approve": False})
+    history = client.get("/approvals").json()
+    assert len(history) == 1
+    assert history[0]["status"] == "denied"
