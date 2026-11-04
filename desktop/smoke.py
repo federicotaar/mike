@@ -24,6 +24,8 @@ def main():
         from PIL import ImageGrab
         ImageGrab.grab().save(os.environ["MIKE_SCREENSHOT"])
     root.destroy()
+    if os.getenv("MIKE_SMOKE_MARKER"):
+        Path(os.environ["MIKE_SMOKE_MARKER"]).write_text("PASS", encoding="utf-8")
     print("DESKTOP SMOKE PASS")
 
 
