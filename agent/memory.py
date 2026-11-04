@@ -104,6 +104,19 @@ class Memory:
             for r in rows
         ]
 
+    def approvals_history(self, limit: int = 100) -> list[dict]:
+        """All approvals, newest first, any status - the full record, not just pending."""
+        rows = self.db.execute(
+            "SELECT id, summary, detail, created_at, status FROM approvals "
+            "ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [
+            {"id": str(r[0]), "summary": r[1], "detail": r[2],
+             "createdAt": r[3], "status": r[4]}
+            for r in rows
+        ]
+
     def decide_approval(self, approval_id: int, approved: bool) -> bool:
         """Returns False when no such pending approval exists."""
         cur = self.db.execute(
