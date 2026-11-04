@@ -15,7 +15,9 @@
 ---
 
 Mike combines an iOS app with a portable Python agent core. Ubuntu, Windows
-and macOS desktop packages are now in development; they are not yet released.
+and macOS desktop clients are now in early preview development. A native chat
+window supports session-only Groq keys, saved facts and pause controls. Packages
+are under native build and smoke testing, not yet released.
 The iPhone app remains available as a sideloadable IPA.
 On first launch it asks one question: **where should Mike's thinking happen?**
 You pick, and you can change your mind later in Settings - your chats and
@@ -36,12 +38,12 @@ providers, upgrades plans, or spends anything on its own.
 | Platform | Available now | In progress |
 | --- | --- | --- |
 | iPhone | Sideloadable iOS app; Groq, own-backend and experimental local modes | Physical-device verification of the latest changes |
-| Ubuntu | Python core from source | Installable desktop package |
-| Windows | Python core from source | Windows executable |
-| macOS | Python core from source | macOS package |
+| Ubuntu | Python core and desktop preview from source | Reviewed desktop package |
+| Windows | Python core and desktop preview from source | Reviewed Windows executable |
+| macOS | Python core and desktop preview from source | Reviewed macOS package |
 
 Desktop package status will be updated only after builds and smoke tests pass.
-No desktop download is implied by this table.
+No released desktop download is implied by this table. See [desktop preview setup and limits](docs/desktop.md).
 
 ## What iOS does and doesn't allow
 
