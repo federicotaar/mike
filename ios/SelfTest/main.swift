@@ -231,6 +231,14 @@ if let approvals = try? APIClient.responseDecoder().decode([Approval].self, from
     check("backend approval date uses Unix epoch", abs(approvals[0].createdAt.timeIntervalSince1970 - 1700000000) < 0.01)
 } else { check("backend approval fixture decodes", false) }
 
+// A reminder approved after its target time must not roll into next year.
+let stale = agentStore.queueApproval(tool: "schedule_reminder", title: "expired", detail: "test",
+    argumentsJSON: "{\"text\":\"expired\",\"at\":\"2020-01-01T10:00:00Z\"}")
+if let approval = agentStore.resolve(stale.id, approved: true) {
+    Tooling.executeApproved(approval, store: agentStore)
+}
+check("expired approved reminder is rejected", agentStore.activity.first?.summary.contains("has passed") == true)
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
