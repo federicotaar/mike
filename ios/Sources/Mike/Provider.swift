@@ -76,6 +76,8 @@ final class ProviderStore: ObservableObject {
         KeychainStore.migrateLegacyToken()
         #if SIM_FORCE_LOCAL
         provider = .local
+        #elseif SIM_FORCE_BACKEND
+        provider = .backend
         #elseif SIM_FORCE_GROQ
         provider = .groq
         #else
