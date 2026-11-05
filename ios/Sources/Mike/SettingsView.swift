@@ -24,7 +24,7 @@ struct SettingsView: View {
                     Text("What Mike remembers about you, stored only on this iPhone.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
-                Section("Google (read-only)") {
+                Section("Google") {
                     if google.connected {
                         Text("Connected. Mike reads inbox ids and your next events to tell you what is new.")
                             .font(.footnote).foregroundStyle(.secondary)
