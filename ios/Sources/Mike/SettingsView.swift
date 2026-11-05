@@ -6,14 +6,31 @@ struct SettingsView: View {
     @State private var showSetup = false
     @StateObject private var google = GoogleConnector()
 
+    /// Choosing "On this iPhone" is not the same as being able to think there.
+    private var localReadiness: String {
+        switch models.state {
+        case .downloaded:
+            return LocalInference.runtimeBundled
+                ? "Model is on this phone, but it has not been proven to run on an iPhone 13: it needs about 3 GB of memory and iOS may close the app. If replies fail, switch to Groq."
+                : "Model file is on this phone, but this build has no runtime, so Mike cannot think on-device yet. Switch to Groq to chat."
+        default:
+            return "Not ready: no model is downloaded, so Mike cannot think yet. Download it below or switch to Groq."
+        }
+    }
+
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             List {
                 Section("Where Mike thinks") {
                     HStack {
                         Text("Current")
                         Spacer()
                         Text(store.provider?.title ?? "Not set").foregroundStyle(.secondary)
+                    }
+                    if store.provider == .local {
+                        Text(localReadiness)
+                            .font(.footnote).foregroundStyle(.orange)
                     }
                     Button("Change provider") { showSetup = true }
                     Text("Switching keeps your chats and settings. Mike never switches on its own.")
@@ -44,6 +61,7 @@ struct SettingsView: View {
                     }
                     Text("Read-only: Mike cannot send, edit or delete anything. Checks run only when iOS allows background refresh, so they can be late or skipped. In a Google project in Testing mode, access expires after 7 days and Mike asks you to reconnect.")
                         .font(.footnote).foregroundStyle(.secondary)
+                        .id("googleEnd")
                 }
                 if store.provider == .groq {
                     Section("Groq") {
@@ -105,6 +123,14 @@ struct SettingsView: View {
                         }
                     }
                 }
+            }
+            .onAppear {
+                #if SIM_SETTINGS_SCROLLED
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    withAnimation { proxy.scrollTo("googleEnd", anchor: .bottom) }
+                }
+                #endif
+            }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showSetup) {
