@@ -56,3 +56,16 @@ def test_never_decides_approvals():
     m.request_approval("one", "d")
     run(run_approval_digest(m, r))
     assert len(m.pending_approvals()) == 1
+
+
+def test_scheduler_registers_only_the_digest_job():
+    from agent import scheduler
+
+    async def go():
+        s = scheduler.start()
+        try:
+            return [j.id for j in s.get_jobs()]
+        finally:
+            s.shutdown(wait=False)
+
+    assert run(go()) == ["approval-digest"]
