@@ -59,7 +59,7 @@ struct SettingsView: View {
                     if !google.status.isEmpty {
                         Text(google.status).font(.footnote).foregroundStyle(.secondary)
                     }
-                    Text("Read-only: Mike cannot send, edit or delete anything. Checks run only when iOS allows background refresh, so they can be late or skipped. In a Google project in Testing mode, access expires after 7 days and Mike asks you to reconnect.")
+                    Text("By default Mike only reads. With the toggle on it can also add calendar events and save email drafts, each after your tap; it never sends email and cannot delete anything. Checks run only when iOS allows background refresh, so they can be late or skipped. In a Google project in Testing mode, access expires after 7 days and Mike asks you to reconnect.")
                         .font(.footnote).foregroundStyle(.secondary)
                         .id("googleEnd")
                 }
