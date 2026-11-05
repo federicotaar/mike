@@ -53,3 +53,12 @@ class DesktopService:
         self.history = self.history[-20:]
         self.memory.log_activity("chat", "Desktop chat completed")
         return reply
+
+    def clear_conversation(self) -> None:
+        """Forget this session's chat history (saved facts are kept)."""
+        self.history = []
+        self.memory.log_activity("chat", "Desktop conversation cleared")
+
+    def activity(self, limit: int = 100) -> list[dict]:
+        """What Mike did, newest first - the same log the iPhone Activity tab reads."""
+        return self.memory.recent_activity(limit)
