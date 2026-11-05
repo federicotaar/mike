@@ -16,7 +16,8 @@ def client(tmp_path, monkeypatch):
 
 def test_status_shape(client):
     s = client.get("/status").json()
-    assert set(s) == {"providerConfigured", "quotaRemainingToday", "paused", "version"}
+    assert set(s) == {"providerConfigured", "quotaRemainingToday", "requestsSentToday",
+                  "localDailyCap", "paused", "version"}
     assert s["paused"] is False
     assert s["version"] and s["version"] != "unknown"
 
