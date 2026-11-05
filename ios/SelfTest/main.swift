@@ -322,6 +322,39 @@ check("not connected does nothing", o3?.status == .notConnected)
 check("invalid_grant tells the user to reconnect once", o4?.message == GoogleSync.reconsentText && o3?.message == "quiet")
 check("stored dedupe keeps hashes, not ids", !sync1.seen.contains("m1") && sync1.seen.allSatisfy { $0.count == 16 })
 
+// Google write tools: narrow, approval-gated, draft-only.
+UserDefaults.standard.set(true, forKey: GoogleWrite.enabledKey)
+let wStore = AgentStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+let evISO = ISO8601DateFormatter().string(from: Date().addingTimeInterval(86400))
+let evEndISO = ISO8601DateFormatter().string(from: Date().addingTimeInterval(86400 + 3600))
+let wRes = Tooling.run(mkCall("create_calendar_event", "{\"title\":\"Dentist\",\"start\":\"\(evISO)\",\"end\":\"\(evEndISO)\"}"), store: wStore)
+check("calendar event is queued, not created", wRes.contains("approval") && wStore.approvals.filter { $0.status == .pending }.count == 1)
+check("event ending before it starts is rejected", (try? Tooling.validatedArgs(mkCall("create_calendar_event", "{\"title\":\"x\",\"start\":\"\(evEndISO)\",\"end\":\"\(evISO)\"}"))) == nil)
+check("draft with two recipients is rejected", (try? Tooling.validatedArgs(mkCall("draft_email", "{\"to\":\"a@b.it,c@d.it\",\"subject\":\"s\",\"body\":\"b\"}"))) == nil)
+check("draft subject with a newline is rejected (header injection)", (try? Tooling.validatedArgs(mkCall("draft_email", "{\"to\":\"a@b.it\",\"subject\":\"s\\nBcc: x@y.it\",\"body\":\"b\"}"))) == nil)
+check("valid draft is accepted", (try? Tooling.validatedArgs(mkCall("draft_email", "{\"to\":\"a@b.it\",\"subject\":\"Ciao\",\"body\":\"Hi\"}"))) != nil)
+let dr = GoogleWrite.draftRequest(GoogleWrite.DraftSpec(to: "a@b.it", subject: "Ciao è", body: "Hi"), token: "T")
+check("draft goes to the drafts endpoint, never send", dr.url!.absoluteString.hasSuffix("/users/me/drafts") && !dr.url!.absoluteString.contains("send"))
+check("write scopes contain no full-mail or delete scope", GoogleWrite.writeScopes.allSatisfy { $0.hasSuffix("calendar.events") || $0.hasSuffix("gmail.compose") })
+check("write tools hidden from the model when off", { UserDefaults.standard.set(false, forKey: GoogleWrite.enabledKey); let n = Tooling.activeTools.count; UserDefaults.standard.set(true, forKey: GoogleWrite.enabledKey); return n == Tooling.tools.count && Tooling.activeTools.count == Tooling.tools.count + 2 }())
+check("write tool rejected while Google actions are off", { UserDefaults.standard.set(false, forKey: GoogleWrite.enabledKey); defer { UserDefaults.standard.set(true, forKey: GoogleWrite.enabledKey) }; return (try? Tooling.validatedArgs(mkCall("draft_email", "{\"to\":\"a@b.it\",\"subject\":\"s\",\"body\":\"b\"}"))) == nil }())
+var wOut = ""
+let semW = DispatchSemaphore(value: 0)
+Task {
+    var sawDrafts = false
+    wOut = await GoogleWrite.perform(tool: "draft_email", args: ["to": "a@b.it", "subject": "Ciao", "body": "Hi"], clientID: "c", refreshToken: "RT") { r in
+        let u = r.url!.absoluteString
+        if u.contains("oauth2") { return (200, Data("{\"access_token\":\"AT\",\"scope\":\"x\"}".utf8)) }
+        sawDrafts = u.hasSuffix("/drafts")
+        return (200, Data("{}".utf8))
+    }
+    if !sawDrafts { wOut = "no drafts call" }
+    semW.signal()
+}
+_ = semW.wait(timeout: .now() + 10)
+check("approved draft reports saved, not sent", wOut.contains("Not sent"))
+UserDefaults.standard.removeObject(forKey: GoogleWrite.enabledKey)
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
