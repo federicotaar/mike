@@ -41,6 +41,8 @@ class MikeWindow:
         self.pause = ttk.Button(setup, text="Resume" if self.service.memory.is_paused() else "Pause", command=self.toggle_pause)
         self.pause.grid(row=0, column=2, padx=8)
         ttk.Button(setup, text="Memory", command=self.show_memory).grid(row=0, column=3)
+        ttk.Button(setup, text="New chat", command=self.new_chat).grid(row=0, column=4, padx=(8, 0))
+        ttk.Button(setup, text="Activity", command=self.show_activity).grid(row=0, column=5, padx=(8, 0))
         self.transcript = tk.Text(root, wrap="word", state="disabled", padx=22, pady=20,
                                   font=("Arial", 12), bg="#191c21", fg="#e5e7eb", relief="flat", spacing3=10,
                                   insertbackground="white", selectbackground="#2563eb")
