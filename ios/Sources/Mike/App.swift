@@ -5,6 +5,7 @@ struct MikeApp: App {
     init() {
         // CI runtime smoke: no-op unless launched with -RuntimeSmoke <path>.
         RuntimeSmoke.runIfRequested()
+        BackgroundCheck.register()
     }
     @StateObject private var api = APIClient()
     @StateObject private var providers = ProviderStore()
