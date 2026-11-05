@@ -18,9 +18,10 @@ is claimed as working anywhere else in the repo.
 
 ## Then
 
-- **Memory editing and deletion in the phone UI.** Groq mode already has
-  time, recall, approved memory and reminder tools. A memory management
-  screen and sync with the separate optional backend remain unbuilt.
+- **Memory sync with the optional backend.** The phone has a Saved memory
+  screen (edit, delete; built and compiled in CI, simulator screenshot only,
+  swipe gestures and a physical iPhone not yet tested). Sync with the separate
+  optional backend remains unbuilt.
 - **Isolated self-improvement.** Draft change on a branch, tests in a
   networkless throwaway container, user reviews the diff, merge only with
   an explicit yes. Disabled until the container exists (see
