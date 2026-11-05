@@ -43,6 +43,7 @@ class MikeWindow:
         ttk.Button(setup, text="Memory", command=self.show_memory).grid(row=0, column=3)
         ttk.Button(setup, text="New chat", command=self.new_chat).grid(row=0, column=4, padx=(8, 0))
         ttk.Button(setup, text="Activity", command=self.show_activity).grid(row=0, column=5, padx=(8, 0))
+        ttk.Button(setup, text="Approvals", command=self.show_approvals).grid(row=0, column=6, padx=(8, 0))
         self.transcript = tk.Text(root, wrap="word", state="disabled", padx=22, pady=20,
                                   font=("Arial", 12), bg="#191c21", fg="#e5e7eb", relief="flat", spacing3=10,
                                   insertbackground="white", selectbackground="#2563eb")
@@ -121,6 +122,27 @@ class MikeWindow:
         for event in self.service.activity(limit=200):
             stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(event["time"]))
             items.insert("end", f"{stamp}  [{event['kind']}]  {event['summary']}")
+
+    def show_approvals(self):
+        window = tk.Toplevel(self.root)
+        window.title("Mike - Approvals")
+        window.geometry("640x360")
+        items = tk.Listbox(window)
+        items.pack(fill="both", expand=True, padx=12, pady=12)
+        rows = []
+        def refresh():
+            nonlocal rows
+            rows = self.service.pending_approvals()
+            items.delete(0, "end")
+            for row in rows: items.insert("end", row["summary"])
+        def decide(approved):
+            selected = items.curselection()
+            if not selected: return
+            self.service.decide(int(rows[selected[0]]["id"]), approved)
+            refresh()
+        ttk.Button(window, text="Approve", command=lambda: decide(True)).pack(side="left", padx=12)
+        ttk.Button(window, text="Deny", command=lambda: decide(False)).pack(side="left")
+        refresh()
 
     def show_memory(self):
         window = tk.Toplevel(self.root)
