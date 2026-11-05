@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject var store: ProviderStore
     @EnvironmentObject var models: ModelManager
     @State private var showSetup = false
+    @StateObject private var google = GoogleConnector()
 
     var body: some View {
         NavigationStack {
@@ -21,6 +22,24 @@ struct SettingsView: View {
                 Section("Saved memory") {
                     NavigationLink("View, edit or delete") { MemoryView() }
                     Text("What Mike remembers about you, stored only on this iPhone.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                Section("Google (read-only)") {
+                    if google.connected {
+                        Text("Connected. Mike reads inbox ids and your next events to tell you what is new.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        Button("Check now") { Task { await google.checkNow() } }
+                        Button("Disconnect", role: .destructive) { google.disconnect() }
+                    } else {
+                        TextField("Your Google iOS client id", text: $google.clientID)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .onSubmit { google.saveClientID(google.clientID) }
+                        Button("Connect Google") { google.saveClientID(google.clientID); google.connect() }
+                    }
+                    if !google.status.isEmpty {
+                        Text(google.status).font(.footnote).foregroundStyle(.secondary)
+                    }
+                    Text("Read-only: Mike cannot send, edit or delete anything. Checks run only when iOS allows background refresh, so they can be late or skipped. In a Google project in Testing mode, access expires after 7 days and Mike asks you to reconnect.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if store.provider == .groq {
