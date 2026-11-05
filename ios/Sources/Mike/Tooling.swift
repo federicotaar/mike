@@ -83,6 +83,29 @@ enum Tooling {
                 ], required: ["text", "at"])])),
     ]
 
+    /// Google write tools are offered to the model only when the owner has
+    /// granted the wider scopes. They still need an approval tap each time.
+    static let googleTools: [ToolDef] = [
+        ToolDef(function: .init(name: "create_calendar_event",
+            description: "Create an event on the owner's Google Calendar. Needs the owner's approval first.",
+            parameters: ["type": .init(type: "object", description: nil,
+                properties: [
+                    "title": .init(type: "string", description: "Event title."),
+                    "start": .init(type: "string", description: "Start, ISO 8601 with timezone."),
+                    "end": .init(type: "string", description: "End, ISO 8601 with timezone, after start."),
+                ], required: ["title", "start", "end"])])),
+        ToolDef(function: .init(name: "draft_email",
+            description: "Save an email DRAFT in the owner's Gmail. It is never sent; the owner sends it. Needs approval first.",
+            parameters: ["type": .init(type: "object", description: nil,
+                properties: [
+                    "to": .init(type: "string", description: "One recipient email address."),
+                    "subject": .init(type: "string", description: "Subject, one line."),
+                    "body": .init(type: "string", description: "Plain-text body."),
+                ], required: ["to", "subject", "body"])])),
+    ]
+
+    static var activeTools: [ToolDef] { GoogleWrite.enabled ? tools + googleTools : tools }
+
     // MARK: Argument validation (pure, testable)
 
     enum ToolError: Error, CustomStringConvertible {
@@ -113,7 +136,7 @@ enum Tooling {
 
     static func validatedArgs(_ call: ToolCall) throws -> [String: Any] {
         let name = call.function.name
-        guard ["get_current_time", "remember", "recall", "schedule_reminder"].contains(name) else {
+        guard ["get_current_time", "remember", "recall", "schedule_reminder", "create_calendar_event", "draft_email"].contains(name) else {
             throw ToolError.unknownTool(name)
         }
         let args = try argsDict(call)
@@ -139,6 +162,16 @@ enum Tooling {
             }
             guard date < now.addingTimeInterval(366 * 24 * 3600) else {
                 throw ToolError.badArguments("reminder time must be within one year")
+            }
+        case "create_calendar_event":
+            guard GoogleWrite.enabled else { throw ToolError.badArguments("Google actions are not turned on") }
+            guard GoogleWrite.eventSpec(args) != nil else {
+                throw ToolError.badArguments("create_calendar_event needs a title, and start and end in the future (ISO 8601), at most 24 hours long")
+            }
+        case "draft_email":
+            guard GoogleWrite.enabled else { throw ToolError.badArguments("Google actions are not turned on") }
+            guard GoogleWrite.draftSpec(args) != nil else {
+                throw ToolError.badArguments("draft_email needs one valid recipient, a one-line subject and a body")
             }
         default: break
         }
@@ -181,7 +214,13 @@ enum Tooling {
             // Writes: queue for approval, do not execute.
             let title: String
             let detail: String
-            if name == "remember" {
+            if name == "create_calendar_event" {
+                title = "Add a calendar event"
+                detail = "\"\(args["title"] as? String ?? "")\" from \(args["start"] as? String ?? "") to \(args["end"] as? String ?? ""), on your Google Calendar."
+            } else if name == "draft_email" {
+                title = "Save an email draft"
+                detail = "To \(args["to"] as? String ?? ""), subject \"\(args["subject"] as? String ?? "")\". Saved as a draft in Gmail, never sent."
+            } else if name == "remember" {
                 title = "Remember something"
                 detail = "\"\(args["text"] as? String ?? "")\" - stored on this phone only."
             } else {
@@ -219,6 +258,17 @@ enum Tooling {
                 return
             }
             scheduleNotification(text: text, at: date, store: store)
+        case "create_calendar_event", "draft_email":
+            let tool = approval.tool
+            let clientID = UserDefaults.standard.string(forKey: "mike.google.clientID") ?? ""
+            Task {
+                let result = await GoogleWrite.perform(tool: tool, args: args, clientID: clientID,
+                    refreshToken: KeychainStore.load(GoogleAuth.refreshAccount)) { req in
+                    let (data, resp) = try await URLSession.shared.data(for: req)
+                    return ((resp as? HTTPURLResponse)?.statusCode ?? 0, data)
+                }
+                await MainActor.run { store.log("approval", result) }
+            }
         default:
             store.log("approval", "Approved action for unknown tool \(approval.tool); nothing ran.")
         }
