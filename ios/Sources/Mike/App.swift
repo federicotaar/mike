@@ -22,6 +22,8 @@ struct MikeApp: App {
     @State private var tab = 2
     #elseif SIM_TAB_SETTINGS
     @State private var tab = 3
+    #elseif SIM_TAB_MEMORY
+    @State private var tab = 4
     #else
     @State private var tab = 0
     #endif
@@ -39,6 +41,7 @@ struct MikeApp: App {
                             case 1: ApprovalsView()
                             case 2: ActivityView()
                             case 3: SettingsView()
+                            case 4: NavigationStack { MemoryView() }
                             default: ChatView()
                             }
                         }
