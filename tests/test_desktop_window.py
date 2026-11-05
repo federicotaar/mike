@@ -41,3 +41,9 @@ def test_new_chat_is_refused_while_a_reply_is_pending(window):
 def test_show_activity_runs(window):
     window.service.memory.log_activity("chat", "something")
     window.show_activity()
+
+
+def test_show_approvals_runs_with_pending_item(window):
+    window.service.memory.request_approval("send mail", "body")
+    window.show_approvals()
+    assert len(window.service.pending_approvals()) == 1  # opening the window never decides
