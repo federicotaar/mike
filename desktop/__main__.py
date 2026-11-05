@@ -35,15 +35,16 @@ class MikeWindow:
         setup = ttk.Frame(root, padding=(18, 0, 18, 12))
         setup.grid(row=1, column=0, sticky="ew")
         setup.columnconfigure(1, weight=1)
-        ttk.Label(setup, text="Groq key (session only)").grid(row=0, column=0, padx=(0, 10))
+        ttk.Label(setup, text="Groq key (session only)").grid(row=0, column=0, padx=(0, 10), pady=(0, 10))
         self.key = ttk.Entry(setup, show="*")
-        self.key.grid(row=0, column=1, sticky="ew")
-        self.pause = ttk.Button(setup, text="Resume" if self.service.memory.is_paused() else "Pause", command=self.toggle_pause)
-        self.pause.grid(row=0, column=2, padx=8)
-        ttk.Button(setup, text="Memory", command=self.show_memory).grid(row=0, column=3)
-        ttk.Button(setup, text="New chat", command=self.new_chat).grid(row=0, column=4, padx=(8, 0))
-        ttk.Button(setup, text="Activity", command=self.show_activity).grid(row=0, column=5, padx=(8, 0))
-        ttk.Button(setup, text="Approvals", command=self.show_approvals).grid(row=0, column=6, padx=(8, 0))
+        self.key.grid(row=0, column=1, sticky="ew", pady=(0, 10))
+        buttons = ttk.Frame(setup)
+        buttons.grid(row=1, column=0, columnspan=2, sticky="w")
+        self.pause = ttk.Button(buttons, text="Resume" if self.service.memory.is_paused() else "Pause", command=self.toggle_pause)
+        self.pause.pack(side="left", padx=(0, 8))
+        for label, command in (("Memory", self.show_memory), ("New chat", self.new_chat),
+                               ("Activity", self.show_activity), ("Approvals", self.show_approvals)):
+            ttk.Button(buttons, text=label, command=command).pack(side="left", padx=(0, 8))
         self.transcript = tk.Text(root, wrap="word", state="disabled", padx=22, pady=20,
                                   font=("Arial", 12), bg="#191c21", fg="#e5e7eb", relief="flat", spacing3=10,
                                   insertbackground="white", selectbackground="#2563eb")
@@ -101,6 +102,26 @@ class MikeWindow:
         except queue.Empty: pass
         self.root.after(100, self.poll)
 
+
+    def _popup(self, title: str, width: int, height: int):
+        """A dark toplevel placed inside the main window, never off-screen."""
+        window = tk.Toplevel(self.root)
+        window.title(title)
+        window.configure(bg="#101114")
+        self.root.update_idletasks()
+        x = max(0, int(self.root.winfo_rootx()) + 40)
+        y = max(0, int(self.root.winfo_rooty()) + 60)
+        window.geometry(f"{width}x{height}+{x}+{y}")
+        window.minsize(420, 260)
+        return window
+
+    def _listbox(self, window):
+        box = tk.Listbox(window, bg="#191c21", fg="#e5e7eb", relief="flat", highlightthickness=1,
+                         highlightbackground="#303640", selectbackground="#2563eb", font=("Arial", 12),
+                         activestyle="none")
+        box.pack(fill="both", expand=True, padx=12, pady=(12, 0))
+        return box
+
     def new_chat(self):
         if self.busy:
             self.status.configure(text="Wait for the current reply before starting a new chat.")
@@ -114,21 +135,17 @@ class MikeWindow:
 
     def show_activity(self):
         import time
-        window = tk.Toplevel(self.root)
-        window.title("Mike - Activity")
-        window.geometry("640x420")
-        items = tk.Listbox(window)
-        items.pack(fill="both", expand=True, padx=12, pady=12)
+        window = self._popup("Mike - Activity", 640, 420)
+        items = self._listbox(window)
         for event in self.service.activity(limit=200):
             stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(event["time"]))
             items.insert("end", f"{stamp}  [{event['kind']}]  {event['summary']}")
 
     def show_approvals(self):
-        window = tk.Toplevel(self.root)
-        window.title("Mike - Approvals")
-        window.geometry("640x360")
-        items = tk.Listbox(window)
-        items.pack(fill="both", expand=True, padx=12, pady=12)
+        window = self._popup("Mike - Approvals", 640, 380)
+        ttk.Label(window, text="Your decision is only recorded. Mike has no way to send, post or book anything yet, so approving does not run an action.",
+                  style="Muted.TLabel", wraplength=600, justify="left").pack(anchor="w", padx=12, pady=(12, 0))
+        items = self._listbox(window)
         rows = []
         def refresh():
             nonlocal rows
@@ -140,16 +157,15 @@ class MikeWindow:
             if not selected: return
             self.service.decide(int(rows[selected[0]]["id"]), approved)
             refresh()
-        ttk.Button(window, text="Approve", command=lambda: decide(True)).pack(side="left", padx=12)
-        ttk.Button(window, text="Deny", command=lambda: decide(False)).pack(side="left")
+        bar = ttk.Frame(window, padding=12)
+        bar.pack(fill="x")
+        ttk.Button(bar, text="Approve", command=lambda: decide(True)).pack(side="left", padx=(0, 8))
+        ttk.Button(bar, text="Deny", command=lambda: decide(False)).pack(side="left")
         refresh()
 
     def show_memory(self):
-        window = tk.Toplevel(self.root)
-        window.title("Mike - Saved memory")
-        window.geometry("600x380")
-        items = tk.Listbox(window)
-        items.pack(fill="both", expand=True, padx=12, pady=12)
+        window = self._popup("Mike - Saved memory", 640, 400)
+        items = self._listbox(window)
         rows = []
         def refresh():
             nonlocal rows
@@ -163,7 +179,9 @@ class MikeWindow:
             selected = items.curselection()
             if selected and messagebox.askyesno("Delete memory", "Permanently delete the selected fact?", parent=window):
                 self.service.memory.forget(rows[selected[0]][0]); refresh()
-        ttk.Button(window, text="Add fact", command=add).pack(side="left", padx=12, pady=12)
+        bar = ttk.Frame(window, padding=12)
+        bar.pack(fill="x")
+        ttk.Button(bar, text="Add fact", command=add).pack(side="left", padx=(0, 8))
         def edit():
             selected = items.curselection()
             if not selected: return
@@ -173,8 +191,8 @@ class MikeWindow:
                 try: self.service.edit_fact(row_id, text)
                 except ValueError: messagebox.showerror("Edit fact", "That fact no longer exists.", parent=window)
                 refresh()
-        ttk.Button(window, text="Edit selected", command=edit).pack(side="left", padx=12)
-        ttk.Button(window, text="Delete selected", command=delete).pack(side="left", padx=12)
+        ttk.Button(bar, text="Edit selected", command=edit).pack(side="left", padx=(0, 8))
+        ttk.Button(bar, text="Delete selected", command=delete).pack(side="left")
         refresh()
 
 
