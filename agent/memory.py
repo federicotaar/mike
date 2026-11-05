@@ -9,6 +9,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 import time
+import datetime
 import threading
 from functools import wraps
 
@@ -215,3 +216,28 @@ class Memory:
     def is_paused(self) -> bool:
         row = self.db.execute("SELECT value FROM kv WHERE key='paused'").fetchone()
         return bool(row and row[0] == "1")
+
+    # ---- per-day request counter (quota tracking) ---------------------
+    @synchronized
+    def count_request(self, today: str | None = None) -> int:
+        """Count one model request for today (local date). Returns today's total."""
+        today = today or datetime.date.today().isoformat()
+        row = self.db.execute("SELECT value FROM kv WHERE key='quota_day'").fetchone()
+        if row is None or row[0] != today:
+            self.db.execute(
+                "INSERT INTO kv (key, value) VALUES ('quota_day', ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (today,))
+            self.db.execute(
+                "INSERT INTO kv (key, value) VALUES ('quota_used', '0') "
+                "ON CONFLICT(key) DO UPDATE SET value='0'")
+        self.db.execute("UPDATE kv SET value = CAST(value AS INTEGER) + 1 WHERE key='quota_used'")
+        self.db.commit()
+        return int(self.db.execute("SELECT value FROM kv WHERE key='quota_used'").fetchone()[0])
+
+    @synchronized
+    def requests_today(self, today: str | None = None) -> int:
+        today = today or datetime.date.today().isoformat()
+        day = self.db.execute("SELECT value FROM kv WHERE key='quota_day'").fetchone()
+        if day is None or day[0] != today:
+            return 0
+        return int(self.db.execute("SELECT value FROM kv WHERE key='quota_used'").fetchone()[0])
