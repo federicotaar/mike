@@ -13,6 +13,12 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
 - Core: approvals digest job pushes to your ntfy topic when approvals are
   waiting. Silent while paused, no repeats until the pending set changes.
 - Core: `DELETE /memories/{id}`, approval history, activity pruning.
+- Desktop: New chat, Activity window, Approvals window (decisions are only
+  recorded, nothing is executed), edit saved facts, dark popups, key field on
+  its own row. Click-through test on real Tk widgets and a screenshot workflow
+  run in CI.
+- iPhone (source only, no release yet): Saved memory screen with edit and
+  delete, linked from Settings.
 
 ## [0.4.3] - 2026-10-26
 
