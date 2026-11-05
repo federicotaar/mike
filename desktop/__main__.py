@@ -142,6 +142,16 @@ class MikeWindow:
             if selected and messagebox.askyesno("Delete memory", "Permanently delete the selected fact?", parent=window):
                 self.service.memory.forget(rows[selected[0]][0]); refresh()
         ttk.Button(window, text="Add fact", command=add).pack(side="left", padx=12, pady=12)
+        def edit():
+            selected = items.curselection()
+            if not selected: return
+            row_id, _, current = rows[selected[0]]
+            text = simpledialog.askstring("Edit fact", "Corrected fact:", initialvalue=current, parent=window)
+            if text and text.strip():
+                try: self.service.edit_fact(row_id, text)
+                except ValueError: messagebox.showerror("Edit fact", "That fact no longer exists.", parent=window)
+                refresh()
+        ttk.Button(window, text="Edit selected", command=edit).pack(side="left", padx=12)
         ttk.Button(window, text="Delete selected", command=delete).pack(side="left", padx=12)
         refresh()
 
