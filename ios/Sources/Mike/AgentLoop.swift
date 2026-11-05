@@ -42,7 +42,7 @@ enum AgentLoop {
         req.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONEncoder().encode(Tooling.ChatWithToolsRequest(
-            model: model, messages: messages, tools: Tooling.tools, max_tokens: 1024))
+            model: model, messages: messages, tools: Tooling.activeTools, max_tokens: 1024))
         let session = URLSession(configuration: .ephemeral,
                                  delegate: SameHostOnlySession(originalHost: "api.groq.com"),
                                  delegateQueue: nil)
