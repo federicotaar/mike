@@ -25,3 +25,22 @@ def test_correct_chain_only_latest_is_active(mem):
     with pytest.raises(ValueError):
         mem.correct(first, "late edit of a superseded memory")
     assert third > second > first
+
+
+def test_correct_keeps_kind(mem):
+    old = mem.remember("preference", "likes tea")
+    mem.correct(old, "likes coffee")
+    assert [(k, t) for _, k, t in mem.recall()] == [("preference", "likes coffee")]
+
+
+def test_forget_unknown_returns_false(mem):
+    assert mem.forget(12345) is False
+
+
+def test_blank_memory_rejected_everywhere(mem):
+    with pytest.raises(ValueError):
+        mem.remember("fact", "  \n")
+    old = mem.remember("fact", "ok")
+    with pytest.raises(ValueError):
+        mem.correct(old, "")
+    assert [t for _, _, t in mem.recall()] == ["ok"]
