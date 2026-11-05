@@ -241,3 +241,16 @@ class Memory:
         if day is None or day[0] != today:
             return 0
         return int(self.db.execute("SELECT value FROM kv WHERE key='quota_used'").fetchone()[0])
+
+    # ---- small key/value store -------------------------------------------
+    @synchronized
+    def get_kv(self, key: str, default: str | None = None) -> str | None:
+        row = self.db.execute("SELECT value FROM kv WHERE key=?", (key,)).fetchone()
+        return row[0] if row else default
+
+    @synchronized
+    def set_kv(self, key: str, value: str) -> None:
+        self.db.execute(
+            "INSERT INTO kv (key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value))
+        self.db.commit()
