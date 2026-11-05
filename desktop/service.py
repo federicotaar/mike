@@ -68,3 +68,14 @@ class DesktopService:
         new_id = self.memory.correct(memory_id, new_text.strip())
         self.memory.log_activity("memory", f"corrected memory #{memory_id}")
         return new_id
+
+    def pending_approvals(self) -> list[dict]:
+        """Actions Mike is waiting on. Only the user decides these."""
+        return self.memory.pending_approvals()
+
+    def decide(self, approval_id: int, approved: bool) -> bool:
+        """The user's own decision from the Approvals window."""
+        done = self.memory.decide_approval(approval_id, approved)
+        if done:
+            self.memory.log_activity("approval", f"{'approved' if approved else 'denied'} #{approval_id} (desktop)")
+        return done
