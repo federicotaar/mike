@@ -1,1 +1,1 @@
-{ "name": "mike-watch", "private": true, "type": "module", "scripts": { "test": "node --test test/mike-watch.test.js" } }
+{ "name": "mike-watch", "private": true, "type": "module", "scripts": { "test": "node --test test/mike-watch.test.js test/google.test.js" } }
