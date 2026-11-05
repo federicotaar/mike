@@ -14,7 +14,9 @@ struct SettingsView: View {
                 ? "Model is on this phone, but it has not been proven to run on an iPhone 13: it needs about 3 GB of memory and iOS may close the app. If replies fail, switch to Groq."
                 : "Model file is on this phone, but this build has no runtime, so Mike cannot think on-device yet. Switch to Groq to chat."
         default:
-            return "Not ready: no model is downloaded, so Mike cannot think yet. Download it below or switch to Groq."
+            return LocalInference.runtimeBundled
+                ? "Not ready: no model is downloaded yet. It is a multi-GB file and unproven on an iPhone 13, so Groq is the safer choice."
+                : "Not ready: this build has no on-device runtime, so downloading the model would not let Mike think. Use Groq for now."
         }
     }
 
