@@ -34,7 +34,7 @@ jobs:
             echo 'Release already exists. Refusing overwrite.'; exit 1
           fi
           cat > /tmp/notes.md <<'NOTES'
-          First desktop preview for Ubuntu, Windows and macOS. Chat with your own Groq key, session-only conversation context, manually saved facts and pause/resume.
+          First desktop preview for Ubuntu, Windows and macOS. Binaries are unchanged tested artifacts from commit 8e2625267b828dd215f781b3f96d6dd171c2f3bf (run41917757935); the release tag also includes later documentation and publication-only workflow changes. Chat with your own Groq key, session-only conversation context, manually saved facts and pause/resume.
 
           Each native build passed 52 Python tests, a native GUI smoke test and a packaged-executable GUI launch check. No live-provider chat or user-computer test was performed.
 
@@ -44,4 +44,4 @@ jobs:
 
           All builds are unsigned previews. No local inference, reminder tools, sync, automatic updates or always-on agent. Keys are session-only, not saved. Saved facts are sent to Groq with chat; account terms apply, no fallback provider is used. Uninstall preserves the user-data folder. See docs/desktop.md at this tag for details.
           NOTES
-          gh release create desktop-v0.1.0-preview.1 packages/Mike-Ubuntu-amd64.deb packages/Mike-Windows.zip packages/Mike-macOS.zip packages/SHA256SUMS.txt --target 8e2625267b828dd215f781b3f96d6dd171c2f3bf --title 'Mike Desktop 0.1.0 Preview 1' --notes-file /tmp/notes.md --prerelease --latest=false
+          gh release create desktop-v0.1.0-preview.1 packages/Mike-Ubuntu-amd64.deb packages/Mike-Windows.zip packages/Mike-macOS.zip packages/SHA256SUMS.txt --target main --title 'Mike Desktop 0.1.0 Preview 1' --notes-file /tmp/notes.md --prerelease --latest=false
