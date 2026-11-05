@@ -90,8 +90,11 @@ class ApprovalDecision(BaseModel):
 async def status():
     return {
         "providerConfigured": bool(settings.groq_api_key),
-        # Honest null: per-day quota tracking is not implemented yet.
+        # Honest null: the provider's remaining free quota cannot be read.
         "quotaRemainingToday": None,
+        # What Mike itself counted today, and the optional local cap (0 = none).
+        "requestsSentToday": mem().requests_today(),
+        "localDailyCap": settings.local_daily_cap,
         "paused": mem().is_paused(),
         "version": core_version(),
     }
