@@ -1,0 +1,32 @@
+name: desktop-gui-capture
+# Runs the real desktop windows under Xvfb and publishes screenshots to the
+# gui-captures branch. Never touches a release.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: sudo apt-get update && sudo apt-get install -y python3-tk xvfb
+      - run: python -m pip install -r requirements.txt pillow pytest
+      - run: python -m pytest tests -q
+      - name: Capture every window
+        run: xvfb-run -a -s "-screen 0 1280x800x24" python -m desktop.capture captures
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-gui-captures
+          path: captures/*.png
+      - name: Publish screenshots to gui-captures branch
+        run: |
+          git config user.name "mike-ci"; git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan gui-captures
+          git rm -rf . >/dev/null 2>&1 || true
+          mkdir -p shots && cp captures/*.png shots/
+          git add shots && git commit -m "Desktop GUI captures for ${GITHUB_SHA::7}"
+          git push --force origin gui-captures
