@@ -58,6 +58,28 @@ final class AgentStore: ObservableObject {
         persist()
     }
 
+    /// The user deleted a saved memory. Returns false for an out-of-range index.
+    @discardableResult
+    func forgetMemory(at index: Int) -> Bool {
+        guard memory.indices.contains(index) else { return false }
+        memory.remove(at: index)
+        log("memory", "Deleted a saved memory")
+        persist()
+        return true
+    }
+
+    /// The user corrected a saved memory. Blank text is refused; the old text
+    /// is replaced, not kept in the list.
+    @discardableResult
+    func correctMemory(at index: Int, to text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard memory.indices.contains(index), !trimmed.isEmpty else { return false }
+        memory[index] = trimmed
+        log("memory", "Corrected a saved memory")
+        persist()
+        return true
+    }
+
     func recall(_ query: String) -> [String] {
         let q = query.lowercased()
         return memory.filter { $0.lowercased().contains(q) }
