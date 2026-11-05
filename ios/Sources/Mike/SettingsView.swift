@@ -18,6 +18,11 @@ struct SettingsView: View {
                     Text("Switching keeps your chats and settings. Mike never switches on its own.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
+                Section("Saved memory") {
+                    NavigationLink("View, edit or delete") { MemoryView() }
+                    Text("What Mike remembers about you, stored only on this iPhone.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
                 if store.provider == .groq {
                     Section("Groq") {
                         Text(KeychainStore.load(KeychainStore.groqKey) != nil
