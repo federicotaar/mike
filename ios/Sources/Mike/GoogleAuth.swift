@@ -47,14 +47,14 @@ enum GoogleAuth {
         redirectScheme(clientID: clientID).map { $0 + ":/oauth2redirect" }
     }
 
-    static func authURL(clientID: String, state: String, challenge: String) -> URL? {
+    static func authURL(clientID: String, state: String, challenge: String, write: Bool = false) -> URL? {
         guard let redirect = redirectURI(clientID: clientID) else { return nil }
         var c = URLComponents(string: "https://accounts.google.com/o/oauth2/v2/auth")!
         c.queryItems = [
             .init(name: "client_id", value: clientID),
             .init(name: "redirect_uri", value: redirect),
             .init(name: "response_type", value: "code"),
-            .init(name: "scope", value: scopes.joined(separator: " ")),
+            .init(name: "scope", value: (write ? scopes + GoogleWrite.writeScopes : scopes).joined(separator: " ")),
             .init(name: "access_type", value: "offline"),
             .init(name: "prompt", value: "consent"),
             .init(name: "state", value: state),
@@ -108,12 +108,12 @@ enum GoogleAuth {
         case failed(String)
     }
 
-    static func parseToken(status: Int, body: Data) -> TokenResult {
+    static func parseToken(status: Int, body: Data, requested: [String]? = nil) -> TokenResult {
         let obj = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any] ?? [:]
         if status == 200, let at = obj["access_token"] as? String {
             let granted = ((obj["scope"] as? String) ?? "").split(separator: " ").map(String.init)
             return .ok(accessToken: at, refreshToken: obj["refresh_token"] as? String,
-                       missingScopes: scopes.filter { !granted.contains($0) })
+                       missingScopes: (requested ?? scopes).filter { !granted.contains($0) })
         }
         let err = (obj["error"] as? String) ?? "http_\(status)"
         return err == "invalid_grant" ? .needsReconsent : .failed(err)
