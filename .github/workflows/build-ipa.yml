@@ -2,6 +2,11 @@ name: Build Mike IPA
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a new immutable prerelease after verification
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,6 +28,9 @@ jobs:
           ditto -x -k xtool.app.zip .
           echo "$PWD/xtool.app/Contents/Resources/bin" >> "$GITHUB_PATH"
           "$PWD/xtool.app/Contents/Resources/bin/xtool" --version
+
+      - name: Stamp source version and build provenance
+        run: python3 scripts/ios_version.py --stamp-plist ios/Info.plist --build "$GITHUB_RUN_NUMBER" --commit "$GITHUB_SHA"
 
       - name: Build unsigned IPA
         working-directory: ios
@@ -63,10 +71,14 @@ jobs:
           # 3) ASSERT the final packaged Mach-O, not the environment
           { echo "### Final executable LC_BUILD_VERSION"; echo '```'; xcrun vtool -show-build "$APP/Mike"; echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"
           xcrun vtool -show-build "$APP/Mike" | grep -E 'sdk[[:space:]]+26'             || { echo "FATAL: final IPA executable is not linked against SDK 26 - glass would be simulated-only"; exit 1; }
+          python3 scripts/ios_version.py --stamp-plist "$APP/Info.plist" --build "$GITHUB_RUN_NUMBER" --commit "$GITHUB_SHA"
           codesign --force --sign - "$APP/Frameworks/libLiteRTLM.dylib"
           codesign --force --sign - "$APP"
           rm "$IPA"
           (cd /tmp/mike-relink && zip -qry "$GITHUB_WORKSPACE/$IPA" Payload)
+
+      - name: Verify metadata in final packaged IPA
+        run: python3 scripts/ios_version.py --verify-ipa "$(find ios/xtool -name '*.ipa' | head -1)" --build "$GITHUB_RUN_NUMBER" --commit "$GITHUB_SHA"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
@@ -79,6 +91,7 @@ jobs:
         run: mv ios/xtool/*.ipa ios/xtool/Mike-iPhone.ipa
 
       - name: "Read release version (single source: VERSION file)"
+        if: inputs.publish
         id: ver
         run: |
           set -euo pipefail
@@ -86,6 +99,7 @@ jobs:
           [ -n "$V" ] || { echo "VERSION file empty"; exit 1; }
           echo "tag=v$V" >> "$GITHUB_OUTPUT"
       - name: "Guard: never overwrite an existing release"
+        if: inputs.publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -95,6 +109,7 @@ jobs:
             exit 1
           fi
       - name: Publish release with the IPA
+        if: inputs.publish
         uses: softprops/action-gh-release@v2
         with:
           prerelease: true
