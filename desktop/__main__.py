@@ -49,7 +49,7 @@ class MikeWindow:
                                   insertbackground="white", selectbackground="#2563eb")
         self.transcript.tag_configure("speaker", foreground="#79aaff", font=("Arial", 11, "bold"))
         self.transcript.grid(row=2, column=0, sticky="nsew", padx=18)
-        self.append("Mike", "Your assistant, on your computer.\n\nEnter your own Groq key above to start a conversation. Your key stays in this session and is never saved.\n\nAvailable in this preview: chat, saved facts and pause controls.\nNot available yet: reminder tools, a local model or an always-on agent.")
+        self.append("Mike", "Your assistant, on your computer.\n\nEnter your own Groq key above to start a conversation. Your key stays in this session and is never saved.\n\nAvailable in this preview: chat, saved facts (add, edit, delete), an activity log, an approvals list you decide yourself, and pause.\nNot available yet: reminder tools, a local model or an always-on agent.")
         controls = ttk.Frame(root, padding=18)
         controls.grid(row=3, column=0, sticky="ew")
         controls.columnconfigure(0, weight=1)
