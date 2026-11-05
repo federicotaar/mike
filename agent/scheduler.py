@@ -1,16 +1,28 @@
 """Proactivity: jobs that run on their own and ping the user when something matters.
 
-INCOMPLETE: no real proactive sources are implemented yet. The scheduler starts
-but registers zero jobs, so Mike never sends unsolicited placeholder pings.
-Add real jobs here only when they have something genuinely useful to say.
+One real job is registered: the approvals digest (see proactive.py). It checks
+every few minutes but only speaks when the set of pending approvals changed.
 """
 from __future__ import annotations
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .notify import ping
+from .proactive import run_approval_digest
+
+DIGEST_CHECK_MINUTES = 15
+
+
+async def _digest_job() -> None:
+    from .api import mem
+    try:
+        await run_approval_digest(mem(), lambda title, body: ping(title, body))
+    except Exception as exc:  # a failed push must never take the core down
+        mem().log_activity("proactive", f"digest failed: {type(exc).__name__}")
+
 
 def start() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
-    # No jobs registered yet: goals/proactivity are not implemented (see README
-    # "What Mike does not do yet"). Register real jobs here when they exist.
+    scheduler.add_job(_digest_job, "interval", minutes=DIGEST_CHECK_MINUTES,
+                      id="approval-digest", max_instances=1, coalesce=True)
     scheduler.start()
     return scheduler
