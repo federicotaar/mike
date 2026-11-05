@@ -12,8 +12,9 @@ is claimed as working anywhere else in the repo.
 - **Physical-device verification of the on-device model.** Gemma 4 E2B
   generates replies in the simulator; memory and speed on a real iPhone 13
   decide whether on-device mode ships as default.
-- **Per-day quota tracking** so `/status` can report a real
-  `quotaRemainingToday` instead of `null`.
+- **Provider quota.** `/status` keeps `quotaRemainingToday` as `null` because
+  Groq's remaining free quota is not readable from the core. Only a
+  local count (`requestsSentToday`) and an optional user-set cap exist.
 
 ## Then
 
