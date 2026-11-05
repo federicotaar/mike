@@ -5,10 +5,10 @@ is claimed as working anywhere else in the repo.
 
 ## Next
 
-- **Real proactive jobs in the core.** `agent/scheduler.py` starts but
-  registers zero jobs. First candidates: a morning briefing and a
-  quota-remaining check, each only when it has something genuinely useful
-  to say.
+- **More proactive jobs in the core.** One job exists: the approvals digest
+  (pushes to your own ntfy topic when approvals are waiting, silent while
+  paused, no repeats until the pending set changes). A morning briefing is
+  the next candidate, only when it has something genuinely useful to say.
 - **Physical-device verification of the on-device model.** Gemma 4 E2B
   generates replies in the simulator; memory and speed on a real iPhone 13
   decide whether on-device mode ships as default.
