@@ -35,6 +35,7 @@ class Settings:
     approval_required: bool = _as_bool(os.getenv("APPROVAL_REQUIRED", "true"), True)
     db_path: str = os.getenv("DB_PATH", "mike.db")  # repo-local by default; docker sets DB_PATH=/data/agent.db
     host: str = os.getenv("HOST", "127.0.0.1")
+    daily_request_limit: int = _as_int(os.getenv("DAILY_REQUEST_LIMIT", "1000"), 1000)
     port: int = _as_int(os.getenv("PORT", "8787"), 8787)
 
 
