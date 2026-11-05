@@ -100,6 +100,28 @@ class MikeWindow:
         except queue.Empty: pass
         self.root.after(100, self.poll)
 
+    def new_chat(self):
+        if self.busy:
+            self.status.configure(text="Wait for the current reply before starting a new chat.")
+            return
+        self.service.clear_conversation()
+        self.transcript.configure(state="normal")
+        self.transcript.delete("1.0", "end")
+        self.transcript.configure(state="disabled")
+        self.append("Mike", "New chat. Saved facts are kept; the earlier conversation is forgotten.")
+        self.status.configure(text="Ready.")
+
+    def show_activity(self):
+        import time
+        window = tk.Toplevel(self.root)
+        window.title("Mike - Activity")
+        window.geometry("640x420")
+        items = tk.Listbox(window)
+        items.pack(fill="both", expand=True, padx=12, pady=12)
+        for event in self.service.activity(limit=200):
+            stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(event["time"]))
+            items.insert("end", f"{stamp}  [{event['kind']}]  {event['summary']}")
+
     def show_memory(self):
         window = tk.Toplevel(self.root)
         window.title("Mike - Saved memory")
