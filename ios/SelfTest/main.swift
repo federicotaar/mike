@@ -255,6 +255,73 @@ let editReopened = AgentStore(directory: editDir)
 check("memory edits survive relaunch", editReopened.memory == ["lives in Modena"])
 try? FileManager.default.removeItem(at: editDir)
 
+// Google (on-device, read-only): PKCE, URLs, callback safety, sync flow.
+let rfc: [UInt8] = [116,24,223,180,151,153,224,37,79,250,96,125,216,173,187,186,22,212,37,77,105,214,191,240,91,88,5,88,83,132,141,121]
+let pk = GoogleAuth.pkcePair(randomBytes: rfc)
+check("PKCE verifier matches RFC 7636", pk.verifier == "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+check("PKCE challenge matches RFC 7636", pk.challenge == "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+check("scopes are read-only", GoogleAuth.scopes.allSatisfy { $0.hasSuffix(".readonly") })
+check("redirect scheme is the reversed client id", GoogleAuth.redirectURI(clientID: "123-abc.apps.googleusercontent.com") == "com.googleusercontent.apps.123-abc:/oauth2redirect")
+check("non-Google client id is rejected", GoogleAuth.redirectURI(clientID: "evil.example.com") == nil)
+let au = GoogleAuth.authURL(clientID: "123-abc.apps.googleusercontent.com", state: "st", challenge: "ch")
+let auItems = URLComponents(url: au!, resolvingAgainstBaseURL: false)!.queryItems!
+func q(_ k: String) -> String? { auItems.first { $0.name == k }?.value }
+check("auth URL: offline + S256 + state", q("access_type") == "offline" && q("code_challenge_method") == "S256" && q("state") == "st")
+check("auth URL asks for read-only scopes only", q("scope") == GoogleAuth.scopes.joined(separator: " "))
+check("callback with wrong state is dropped", GoogleAuth.parseCallback(URL(string: "com.googleusercontent.apps.1:/oauth2redirect?code=x&state=other")!, expectedState: "st") == .failure(.stateMismatch))
+check("callback with error is denied", GoogleAuth.parseCallback(URL(string: "com.googleusercontent.apps.1:/oauth2redirect?error=access_denied&state=st")!, expectedState: "st") == .failure(.denied))
+check("good callback yields the code", GoogleAuth.parseCallback(URL(string: "com.googleusercontent.apps.1:/oauth2redirect?code=abc&state=st")!, expectedState: "st") == .success("abc"))
+let tokBody = Data("{\"access_token\":\"AT\",\"scope\":\"https://www.googleapis.com/auth/gmail.readonly\"}".utf8)
+check("token parse reports missing scope", GoogleAuth.parseToken(status: 200, body: tokBody) == .ok(accessToken: "AT", refreshToken: nil, missingScopes: ["https://www.googleapis.com/auth/calendar.readonly"]))
+check("invalid_grant means reconsent", GoogleAuth.parseToken(status: 400, body: Data("{\"error\":\"invalid_grant\"}".utf8)) == .needsReconsent)
+let rr = GoogleAuth.refreshRequest(clientID: "c", refreshToken: "RT+/=")
+check("refresh body is form-encoded and sends no secret", String(data: rr.httpBody!, encoding: .utf8) == "client_id=c&grant_type=refresh_token&refresh_token=RT%2B%2F%3D")
+check("gmail URL asks for inbox ids only, bounded", GoogleReader.gmailListURL(sinceEpoch: 100, max: 999).absoluteString.contains("maxResults=50") && GoogleReader.gmailListURL(sinceEpoch: 100).absoluteString.contains("in:inbox"))
+let evJSON = Data("{\"items\":[{\"id\":\"e1\",\"summary\":\"Dentist\",\"start\":{\"dateTime\":\"2026-11-05T18:30:00Z\"}},{\"id\":\"e2\",\"status\":\"cancelled\",\"start\":{\"dateTime\":\"2026-11-05T19:00:00Z\"}},{\"id\":\"e3\",\"start\":{\"date\":\"2026-11-06\"}}]}".utf8)
+check("events parser skips cancelled and all-day", GoogleReader.parseEvents(evJSON).map { $0.id } == ["e1"])
+
+final class MemStore {
+    var seen: [String] = []; var last: Int? = nil; var reconsent = false
+    var store: GoogleSync.Store {
+        GoogleSync.Store(seen: { self.seen }, setSeen: { self.seen = $0 }, lastCheck: { self.last },
+                         setLastCheck: { self.last = $0 }, reconsentSent: { self.reconsent }, setReconsentSent: { self.reconsent = $0 })
+    }
+}
+func fakeSend(token: (Int, String), mail: String, cal: String) -> (URLRequest) async throws -> (Int, Data) {
+    return { r in
+        let u = r.url!.absoluteString
+        if u.contains("oauth2.googleapis.com") { return (token.0, Data(token.1.utf8)) }
+        if u.contains("gmail") { return (200, Data(mail.utf8)) }
+        return (200, Data(cal.utf8))
+    }
+}
+let okTok = (200, "{\"access_token\":\"AT\",\"scope\":\"https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly\"}")
+let sNow = Date(timeIntervalSince1970: 1_800_000_000)
+let sync1 = MemStore()
+var o1: GoogleSync.Outcome?
+var o2: GoogleSync.Outcome?
+var o3: GoogleSync.Outcome?
+var o4: GoogleSync.Outcome?
+let semG = DispatchSemaphore(value: 0)
+Task {
+    let send = fakeSend(token: okTok, mail: "{\"messages\":[{\"id\":\"m1\"}]}", cal: "{\"items\":[]}")
+    o1 = await GoogleSync.run(clientID: "c", refreshToken: "RT", store: sync1.store, now: sNow, send: send)
+    o2 = await GoogleSync.run(clientID: "c", refreshToken: "RT", store: sync1.store, now: sNow.addingTimeInterval(60), send: send)
+    o3 = await GoogleSync.run(clientID: "c", refreshToken: nil, store: sync1.store, now: sNow, send: send)
+    let dead = fakeSend(token: (400, "{\"error\":\"invalid_grant\"}"), mail: "", cal: "")
+    let a = await GoogleSync.run(clientID: "c", refreshToken: "RT", store: sync1.store, now: sNow, send: dead)
+    let b = await GoogleSync.run(clientID: "c", refreshToken: "RT", store: sync1.store, now: sNow, send: dead)
+    o4 = a; _ = b
+    o3 = GoogleSync.Outcome(status: o3!.status, message: b.message == nil ? "quiet" : "spoke")
+    semG.signal()
+}
+_ = semG.wait(timeout: .now() + 10)
+check("first check announces the new mail", o1?.message == "1 new email.")
+check("second check with same mail stays silent", o2?.status == .ok && o2?.message == nil)
+check("not connected does nothing", o3?.status == .notConnected)
+check("invalid_grant tells the user to reconnect once", o4?.message == GoogleSync.reconsentText && o3?.message == "quiet")
+check("stored dedupe keeps hashes, not ids", !sync1.seen.contains("m1") && sync1.seen.allSatisfy { $0.count == 16 })
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
