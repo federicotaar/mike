@@ -1,0 +1,64 @@
+appId: dev.federicotaranu.mike
+---
+# Saved memory: swipe actions, edit alert, persistence across relaunch,
+# delete, and the empty state. The app is the MEMORY simulator variant, which
+# seeds two "[Sample]" rows only when the list is empty at appear time.
+- launchApp
+- assertVisible: "Saved memory"
+- assertVisible: "[Sample] Lives in Modena"
+- assertVisible: "[Sample] Likes short answers"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: mem1-list
+# Swipe the first row left to reveal Edit and Delete.
+- swipe:
+    start: "85%,22%"
+    end: "20%,22%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "Edit"
+- assertVisible: "Delete"
+- takeScreenshot: mem2-swiped
+- tapOn: "Edit"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "Edit memory"
+- takeScreenshot: mem3-edit-alert
+- eraseText: 80
+- inputText: "Lives in Modena, Italy"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Save"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "Lives in Modena, Italy"
+- assertNotVisible: "[Sample] Lives in Modena"
+- takeScreenshot: mem4-edited
+# Persistence: relaunch without clearing state.
+- stopApp
+- launchApp
+- assertVisible: "Lives in Modena, Italy"
+- takeScreenshot: mem5-after-relaunch
+# Delete the first row by swiping and tapping Delete.
+- swipe:
+    start: "85%,22%"
+    end: "20%,22%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Delete"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertNotVisible: "Lives in Modena, Italy"
+- assertVisible: "[Sample] Likes short answers"
+- takeScreenshot: mem6-deleted-one
+# Delete the last one: the honest empty state appears.
+- swipe:
+    start: "85%,22%"
+    end: "20%,22%"
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Delete"
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "Nothing saved yet"
+- takeScreenshot: mem7-empty
