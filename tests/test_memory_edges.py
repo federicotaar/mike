@@ -44,3 +44,34 @@ def test_blank_memory_rejected_everywhere(mem):
     with pytest.raises(ValueError):
         mem.correct(old, "")
     assert [t for _, _, t in mem.recall()] == ["ok"]
+
+
+def test_approval_can_only_be_decided_once(mem):
+    aid = mem.request_approval("send mail", "details")
+    assert mem.decide_approval(aid, True) is True
+    assert mem.decide_approval(aid, False) is False
+    assert mem.pending_approvals() == []
+
+
+def test_prune_activity_keeps_newest(mem):
+    for i in range(6):
+        mem.log_activity("chat", f"e{i}")
+    assert mem.prune_activity(keep=2) == 4
+    assert [a["summary"] for a in mem.recent_activity()] == ["e5", "e4"]
+    with pytest.raises(ValueError):
+        mem.prune_activity(keep=-1)
+
+
+def test_pause_flag_round_trip(mem):
+    assert mem.is_paused() is False
+    mem.set_paused(True)
+    assert mem.is_paused() is True
+    mem.set_paused(False)
+    assert mem.is_paused() is False
+
+
+def test_request_counter_resets_on_new_day(mem):
+    assert mem.count_request("2026-11-05") == 1
+    assert mem.count_request("2026-11-05") == 2
+    assert mem.requests_today("2026-11-06") == 0
+    assert mem.count_request("2026-11-06") == 1
