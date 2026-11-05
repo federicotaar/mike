@@ -107,3 +107,13 @@ def test_edit_fact_rejects_blank_and_unknown(tmp_path):
         service.edit_fact(old, "   ")
     with pytest.raises(ValueError):
         service.edit_fact(9999, "y")
+
+
+def test_desktop_decision_is_recorded_once(tmp_path):
+    service = DesktopService(tmp_path)
+    aid = service.memory.request_approval("send mail", "body")
+    assert [a["summary"] for a in service.pending_approvals()] == ["send mail"]
+    assert service.decide(aid, False) is True
+    assert service.decide(aid, True) is False
+    assert service.pending_approvals() == []
+    assert any("denied" in i["summary"] for i in service.activity())
