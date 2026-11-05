@@ -37,7 +37,8 @@ A small FastAPI service for running Mike on the user's own machine:
 - `memory.py` - SQLite: memories, approvals, activity, paused flag
 - `guardrails.py` - actions that always need a human yes
 - `selfedit.py` - the self-improvement loop, DISABLED until isolation exists
-- `scheduler.py` - proactive jobs (none registered yet, on purpose)
+- `scheduler.py` - registers proactive jobs (one so far: the approvals digest)
+- `proactive.py` - jobs that speak only when they have something real to say
 - `notify.py` - ntfy push notifications
 - `config.py` - `.env`-driven settings; secrets never come from the repo
 
