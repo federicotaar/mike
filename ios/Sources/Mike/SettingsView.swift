@@ -34,6 +34,9 @@ struct SettingsView: View {
                         TextField("Your Google iOS client id", text: $google.clientID)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .onSubmit { google.saveClientID(google.clientID) }
+                        Toggle("Also let Mike propose calendar events and email drafts", isOn: $google.allowActions)
+                        Text("Each one waits in Approvals for your tap. Mike can save a draft but never sends email. Asks Google for wider access when you connect.")
+                            .font(.footnote).foregroundStyle(.secondary)
                         Button("Connect Google") { google.saveClientID(google.clientID); google.connect() }
                     }
                     if !google.status.isEmpty {
