@@ -71,3 +71,21 @@ def test_desktop_history_is_session_only_and_bounded(tmp_path, monkeypatch):
     assert len(seen[-1][1]["json"]["messages"]) == 22
     assert service.history[0]["content"] == "message 2"
     assert DesktopService(tmp_path).history == []
+
+
+def test_clear_conversation_keeps_facts_and_logs(tmp_path):
+    service = DesktopService(tmp_path)
+    service.memory.remember("fact", "keep me")
+    service.history = [{"role": "user", "content": "hi"}]
+    service.clear_conversation()
+    assert service.history == []
+    assert [text for _, _, text in service.memory.recall()] == ["keep me"]
+    assert service.activity()[0]["summary"] == "Desktop conversation cleared"
+
+
+def test_activity_is_newest_first_and_bounded(tmp_path):
+    service = DesktopService(tmp_path)
+    for i in range(5):
+        service.memory.log_activity("chat", f"event {i}")
+    items = service.activity(limit=3)
+    assert [i["summary"] for i in items] == ["event 4", "event 3", "event 2"]
