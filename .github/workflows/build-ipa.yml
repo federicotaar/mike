@@ -97,9 +97,14 @@ jobs:
       - name: Publish release with the IPA
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: true
+          make_latest: false
           tag_name: ${{ steps.ver.outputs.tag }}
           name: Mike iPhone ${{ steps.ver.outputs.tag }}
           body: |
-            Automated CI build of the Mike iPhone app (tag from the VERSION file).
-            What's in this exact build is described in the repository state at this tag - no feature is claimed beyond it.
+            Preview build approved after screenshot review. Includes backend Resume, Unix date decoding,
+            newest-history retention, secure credential handling and stale-reminder rejection.
+            Simulator compilation and behavior checks passed. Physical iPhone and live-provider chat
+            are not verified. Unsigned IPA: sideload and sign with your own Apple ID.
+            Local-model support remains experimental. Existing releases are preserved.
           files: ios/xtool/Mike-iPhone.ipa
