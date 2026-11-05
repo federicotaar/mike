@@ -22,8 +22,10 @@ loopback only - never expose it on a network without a token.
 }
 ```
 
-`quotaRemainingToday` is honestly `null`: per-day quota tracking is not
-implemented yet.
+`quotaRemainingToday` is honestly `null`: the provider's remaining free quota
+cannot be read, so Mike does not guess it. `/status` also returns
+`requestsSentToday` (requests Mike itself counted today) and `localDailyCap`
+(the optional cap from `MIKE_LOCAL_DAILY_CAP`, `0` meaning no cap).
 
 ### `POST /chat`
 
