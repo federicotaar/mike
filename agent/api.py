@@ -109,6 +109,11 @@ async def chat(body: ChatIn):
         f"You are {settings.agent_name}, the user's personal agent. "
         "Known about the user:\n" + (memories or "(nothing yet)")
     )
+    cap = settings.local_daily_cap
+    if cap and mem().requests_today() >= cap:
+        mem().log_activity("chat", body.message[:140])
+        return {"reply": f"I've reached the daily limit of {cap} requests you set for me. It resets tomorrow, or raise MIKE_LOCAL_DAILY_CAP."}
+    mem().count_request()
     try:
         reply = await think([
             {"role": "system", "content": system},
