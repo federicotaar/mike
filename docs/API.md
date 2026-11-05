@@ -17,6 +17,8 @@ loopback only - never expose it on a network without a token.
 {
   "providerConfigured": true,
   "quotaRemainingToday": null,
+  "requestsSentToday": 0,
+  "localDailyCap": 0,
   "paused": false,
   "version": "0.4.3"
 }
