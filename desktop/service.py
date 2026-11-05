@@ -62,3 +62,9 @@ class DesktopService:
     def activity(self, limit: int = 100) -> list[dict]:
         """What Mike did, newest first - the same log the iPhone Activity tab reads."""
         return self.memory.recent_activity(limit)
+
+    def edit_fact(self, memory_id: int, new_text: str) -> int:
+        """Correct a saved fact. The old text stays as history, the new one is used."""
+        new_id = self.memory.correct(memory_id, new_text.strip())
+        self.memory.log_activity("memory", f"corrected memory #{memory_id}")
+        return new_id
