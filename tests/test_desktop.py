@@ -89,3 +89,21 @@ def test_activity_is_newest_first_and_bounded(tmp_path):
         service.memory.log_activity("chat", f"event {i}")
     items = service.activity(limit=3)
     assert [i["summary"] for i in items] == ["event 4", "event 3", "event 2"]
+
+
+def test_edit_fact_replaces_text_and_keeps_history(tmp_path):
+    service = DesktopService(tmp_path)
+    old = service.memory.remember("fact", "lives in Rome")
+    new = service.edit_fact(old, "  lives in Modena ")
+    assert [text for _, _, text in service.memory.recall()] == ["lives in Modena"]
+    assert new != old
+    assert any("corrected memory" in i["summary"] for i in service.activity())
+
+
+def test_edit_fact_rejects_blank_and_unknown(tmp_path):
+    service = DesktopService(tmp_path)
+    old = service.memory.remember("fact", "x")
+    with pytest.raises(ValueError):
+        service.edit_fact(old, "   ")
+    with pytest.raises(ValueError):
+        service.edit_fact(9999, "y")
