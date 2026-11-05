@@ -239,6 +239,22 @@ if let approval = agentStore.resolve(stale.id, approved: true) {
 }
 check("expired approved reminder is rejected", agentStore.activity.first?.summary.contains("has passed") == true)
 
+// Memory management: delete and correct by index, with bounds and blank guards.
+let editDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+try? FileManager.default.createDirectory(at: editDir, withIntermediateDirectories: true)
+let editStore = AgentStore(directory: editDir)
+editStore.remember("lives in Rome")
+editStore.remember("likes tea")
+check("correct memory replaces text", editStore.correctMemory(at: 1, to: "  lives in Modena ") && editStore.memory[1] == "lives in Modena")
+check("blank correction is refused", editStore.correctMemory(at: 0, to: "   ") == false && editStore.memory[0] == "likes tea")
+check("out-of-range correction is refused", editStore.correctMemory(at: 9, to: "x") == false)
+check("delete memory removes it", editStore.forgetMemory(at: 0) && editStore.memory == ["lives in Modena"])
+check("out-of-range delete is refused", editStore.forgetMemory(at: 5) == false && editStore.memory.count == 1)
+check("memory edits are logged", editStore.activity.first?.summary == "Deleted a saved memory")
+let editReopened = AgentStore(directory: editDir)
+check("memory edits survive relaunch", editReopened.memory == ["lives in Modena"])
+try? FileManager.default.removeItem(at: editDir)
+
 let verdict = failures == 0 ? "ALL PASS" : "\(failures) FAILURES"
 print(verdict)
 lines.append(verdict)
