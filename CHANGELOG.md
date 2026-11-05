@@ -4,6 +4,16 @@ All notable changes to Mike are documented here. Versions follow the
 `VERSION` file at the repo root; iPhone releases ship as `Mike-iPhone.ipa`
 on the [Releases page](https://github.com/federicotaar/mike/releases).
 
+## [Unreleased]
+
+### Added
+- Core: `/status` reports `requestsSentToday` and `localDailyCap`; an optional
+  local cap (`MIKE_LOCAL_DAILY_CAP`, default off) can stop chat. The provider's
+  own quota stays `null` because it cannot be read.
+- Core: approvals digest job pushes to your ntfy topic when approvals are
+  waiting. Silent while paused, no repeats until the pending set changes.
+- Core: `DELETE /memories/{id}`, approval history, activity pruning.
+
 ## [0.4.3] - 2026-10-26
 
 ### Fixed
