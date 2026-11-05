@@ -32,12 +32,12 @@ def main(out_dir: str) -> None:
     memory = window.service.memory
     fact = memory.remember("fact", "Lives in Modena")
     memory.remember("preference", "Likes short answers")
-    memory.request_approval("Reply to Marco: 'See you at 6'", "Mike drafted this reply")
-    memory.request_approval("Add dentist appointment to calendar", "Thursday 10:00")
+    memory.request_approval("[TEST FIXTURE] Example approval A", "Sample row for the screenshot")
+    memory.request_approval("[TEST FIXTURE] Example approval B", "Sample row for the screenshot")
     memory.log_activity("chat", "Asked about tomorrow's schedule")
     window.service.edit_fact(fact, "Lives in Modena, Italy")
     window.append("You", "What is waiting for me?")
-    window.append("Mike", "Two approvals are waiting. I will not act on them until you decide.")
+    window.append("Mike", "This is a screenshot fixture, not a real conversation.")
     _shot(root, out, "01-main")
     for name, opener in (("02-memory", window.show_memory),
                          ("03-activity", window.show_activity),
@@ -45,8 +45,6 @@ def main(out_dir: str) -> None:
         before = set(root.winfo_children())
         opener()
         new = [w for w in root.winfo_children() if w not in before]
-        for w in new:
-            w.geometry("+700+80")
         _shot(root, out, name)
         for w in new:
             w.destroy()
