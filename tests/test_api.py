@@ -161,3 +161,13 @@ def test_activity_endpoint_filters_by_kind(client):
     rows = client.get("/activity", params={"kind": "chat"}).json()
     assert [r["summary"] for r in rows] == ["hello"]
     assert len(client.get("/activity").json()) == 2
+
+
+def test_memories_list_endpoint(client):
+    api.memory.remember("fact", "lives in Ferrara")
+    api.memory.remember("preference", "short answers")
+    rows = client.get("/memories").json()
+    assert [r["text"] for r in rows] == ["short answers", "lives in Ferrara"]
+    facts = client.get("/memories", params={"kind": "fact"}).json()
+    assert [r["text"] for r in facts] == ["lives in Ferrara"]
+    assert client.get("/memories", params={"limit": "0"}).status_code == 400
