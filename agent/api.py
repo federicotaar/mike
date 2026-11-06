@@ -172,6 +172,15 @@ async def decide_approval(approval_id: int, body: ApprovalDecision):
     return {"ok": True}
 
 
+@app.get("/memories")
+async def list_memories(limit: int = 50, kind: str = ""):
+    """Active memories, newest first - what the memory screen lists."""
+    if limit < 1 or limit > 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+    rows = mem().recall(limit=limit, kind=kind.strip() or None)
+    return [{"id": str(i), "kind": k, "text": t} for i, k, t in rows]
+
+
 @app.get("/memories/search")
 async def search_memories(q: str = ""):
     """Find active memories containing the query text, case-insensitive."""
