@@ -15,6 +15,13 @@ Sender = Callable[[str, str], Awaitable[None]]
 DIGEST_KEY = "digest_last_signature"
 
 
+def _clip(text: str, width: int = 100) -> str:
+    """One flat line of at most `width` chars, so a long approval summary
+    stays readable inside a lock-screen push."""
+    flat = " ".join(text.split())
+    return flat if len(flat) <= width else flat[: width - 1].rstrip() + "\u2026"
+
+
 def pending_digest(memory: Memory) -> tuple[str, str] | None:
     """(signature, text) for the pending approvals, or None when nothing waits."""
     pending = memory.pending_approvals()
@@ -22,7 +29,7 @@ def pending_digest(memory: Memory) -> tuple[str, str] | None:
         return None
     ids = ",".join(sorted(p["id"] for p in pending))
     signature = hashlib.sha256(ids.encode()).hexdigest()[:16]
-    lines = [f"- {p['summary']}" for p in pending[:5]]
+    lines = [f"- {_clip(p['summary'])}" for p in pending[:5]]
     more = len(pending) - len(lines)
     if more > 0:
         lines.append(f"...and {more} more")
