@@ -63,6 +63,10 @@ class DesktopService:
         """What Mike did, newest first - the same log the iPhone Activity tab reads."""
         return self.memory.recent_activity(limit)
 
+    def search_facts(self, query: str) -> list[str]:
+        """Saved facts containing the query text, case-insensitive."""
+        return [t for _, _, t in self.memory.search_memories(query)]
+
     def edit_fact(self, memory_id: int, new_text: str) -> int:
         """Correct a saved fact. The old text stays as history, the new one is used."""
         new_id = self.memory.correct(memory_id, new_text.strip())
