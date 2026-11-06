@@ -131,3 +131,12 @@ def test_count_memories_excludes_superseded_and_deleted(tmp_path):
     gone = m.remember("fact", "gone")
     m.forget(gone)
     assert m.count_memories() == 1
+
+
+def test_recent_activity_filters_by_kind(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.log_activity("chat", "hello")
+    m.log_activity("stop", "paused")
+    assert len(m.recent_activity()) == 2
+    chats = m.recent_activity(kind="chat")
+    assert [r["summary"] for r in chats] == ["hello"]
