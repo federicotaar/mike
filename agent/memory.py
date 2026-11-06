@@ -80,6 +80,10 @@ class Memory:
 
     @synchronized
     def recall(self, limit: int = 50, kind: str | None = None) -> list[tuple[int, str, str]]:
+        if kind is not None and kind not in MEMORY_KINDS:
+            raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
+        if limit < 1:
+            raise ValueError("limit must be at least 1")
         if kind is None:
             rows = self.db.execute(
                 "SELECT id, kind, text FROM memories "
