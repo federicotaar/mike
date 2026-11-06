@@ -9,7 +9,16 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .notify import ping
 from .proactive import run_approval_digest
 
-DIGEST_CHECK_MINUTES = 15
+
+def _digest_minutes() -> int:
+    """Digest cadence in minutes: MIKE_DIGEST_MINUTES, default 15, minimum 1."""
+    import os
+    raw = os.getenv("MIKE_DIGEST_MINUTES", "15")
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 15
+    return value if value >= 1 else 15
 
 
 async def _digest_job() -> None:
@@ -22,7 +31,7 @@ async def _digest_job() -> None:
 
 def start() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(_digest_job, "interval", minutes=DIGEST_CHECK_MINUTES,
+    scheduler.add_job(_digest_job, "interval", minutes=_digest_minutes(),
                       id="approval-digest", max_instances=1, coalesce=True)
     scheduler.start()
     return scheduler
