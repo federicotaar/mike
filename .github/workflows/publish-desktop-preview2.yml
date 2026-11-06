@@ -1,0 +1,40 @@
+name: Publish desktop preview 2
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download tested preview artifacts
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42294967750
+          path: packages
+          merge-multiple: true
+      - name: Verify Ubuntu package
+        run: |
+          set -euo pipefail
+          test -s packages/Mike-Ubuntu-amd64.deb
+          (cd packages && sha256sum Mike-Ubuntu-amd64.deb > SHA256SUMS.txt)
+      - name: Publish preview 2 without replacing old releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view desktop-v0.1.0-preview.2 >/dev/null 2>&1; then
+            echo 'Release already exists. Refusing overwrite.'; exit 1
+          fi
+          cat > /tmp/notes.md <<'NOTES'
+          Second desktop preview, Ubuntu package only, with today's changes from commit edae1003 (2026-11-06: memory search/list/correction APIs, activity filtering, approval lookup, reliability fixes, docs updates).
+
+          The .deb is the unchanged tested artifact from desktop-preview CI run 42294967750: the Ubuntu runner passed 133 Python tests, a native GUI smoke test and a packaged-executable GUI launch check before packaging. Built on Ubuntu 22.04, unsigned.
+
+          Install: sudo apt install ./Mike-Ubuntu-amd64.deb (quit Mike first if a previous preview is installed). Verify the download against SHA256SUMS.txt.
+
+          Windows and macOS packages are not refreshed in this preview (the macOS runner job was cancelled); preview 1 remains available for those. No live-provider chat or user-computer test was performed. Keys are session-only, not saved. Data stays in ~/.local/share/Mike and survives uninstall.
+          NOTES
+          gh release create desktop-v0.1.0-preview.2 packages/Mike-Ubuntu-amd64.deb packages/SHA256SUMS.txt --target main --title 'Mike Desktop 0.1.0 Preview 2 (Ubuntu)' --notes-file /tmp/notes.md --prerelease --latest=false
