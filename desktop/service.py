@@ -78,6 +78,19 @@ class DesktopService:
         """Saved facts containing the query text, case-insensitive."""
         return [t for _, _, t in self.memory.search_memories(query)]
 
+    def add_fact(self, text: str) -> int:
+        """Save a fact from the memory window, recorded in the activity log."""
+        new_id = self.memory.remember("fact", text.strip())
+        self.memory.log_activity("memory", f"saved fact #{new_id}")
+        return new_id
+
+    def delete_fact(self, memory_id: int) -> bool:
+        """Delete a fact for good, recorded in the activity log like edits are."""
+        done = self.memory.forget(memory_id)
+        if done:
+            self.memory.log_activity("memory", f"deleted fact #{memory_id}")
+        return done
+
     def edit_fact(self, memory_id: int, new_text: str) -> int:
         """Correct a saved fact. The old text stays as history, the new one is used."""
         new_id = self.memory.correct(memory_id, new_text.strip())
