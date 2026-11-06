@@ -6,7 +6,7 @@
 
 **A personal AI assistant for phone and desktop. Open source, with clear controls and honest limits.**
 
-![status](https://img.shields.io/badge/status-v0.4.3%20early-orange)
+![status](https://img.shields.io/badge/status-v0.4.4--preview.1%20early-orange)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 ![cost](https://img.shields.io/badge/app-0%E2%82%AC%20free%20forever-brightgreen)
 
