@@ -59,9 +59,9 @@ class DesktopService:
         self.history = []
         self.memory.log_activity("chat", "Desktop conversation cleared")
 
-    def activity(self, limit: int = 100) -> list[dict]:
+    def activity(self, limit: int = 100, kind: str | None = None) -> list[dict]:
         """What Mike did, newest first - the same log the iPhone Activity tab reads."""
-        return self.memory.recent_activity(limit)
+        return self.memory.recent_activity(limit, kind=kind)
 
     def search_facts(self, query: str) -> list[str]:
         """Saved facts containing the query text, case-insensitive."""
