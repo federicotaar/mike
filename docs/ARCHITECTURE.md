@@ -50,6 +50,17 @@ A small FastAPI service for running Mike on the user's own machine:
 - `notify.py` - ntfy push notifications
 - `config.py` - `.env`-driven settings; secrets never come from the repo
 
+## Desktop app (`desktop/`) - optional, preview
+
+A native Tk chat window that embeds the same core modules directly, no
+server needed:
+
+- `__main__.py` - chat window, memory/activity/approvals popups
+- `service.py` - session state: Groq key in memory only, facts, history
+- `capture.py` / `smoke.py` / `clicktest.py` - CI screenshot, smoke and
+  click-through checks on real widgets
+- `launcher.py` - frozen entry point
+
 ## Trust boundaries
 
 1. The phone talks only to the user-chosen provider (Groq, own backend, or
