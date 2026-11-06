@@ -8,6 +8,9 @@ from .config import settings
 async def ping(title: str, body: str, priority: int = 3, tags: list[str] | None = None) -> None:
     if not 1 <= priority <= 5:
         raise ValueError("ntfy priority must be between 1 (min) and 5 (max)")
+    for tag in tags or []:
+        if not tag.strip() or "," in tag or any(c.isspace() for c in tag):
+            raise ValueError("ntfy tags must be non-empty single words without commas")
     if not settings.ntfy_topic:
         return
     headers = {"Title": title, "Priority": str(priority)}
