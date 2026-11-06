@@ -22,6 +22,17 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")  # free-tier model, overridable
 
 
+def _request_timeout() -> float:
+    """Seconds before a model call gives up. MIKE_GROQ_TIMEOUT overrides the
+    60s default; garbage or non-positive values fall back to the default."""
+    raw = os.getenv("MIKE_GROQ_TIMEOUT", "60")
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return 60.0
+    return value if value > 0 else 60.0
+
+
 class QuotaSpent(RuntimeError):
     """Today's free quota is gone. Say so, try again tomorrow."""
 
@@ -41,7 +52,7 @@ class ProviderAuthRejected(RuntimeError):
 async def think(messages: list[dict]) -> str:
     if not settings.groq_api_key:
         raise ProviderNotConfigured("no approved Groq key configured")
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=_request_timeout()) as client:
         r = await client.post(
             GROQ_URL,
             headers={"Authorization": f"Bearer {settings.groq_api_key}"},
