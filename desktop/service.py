@@ -51,7 +51,7 @@ class DesktopService:
                 raise InvalidProviderResponse("Groq returned no usable reply.")
         self.history.extend([{"role": "user", "content": text}, {"role": "assistant", "content": reply}])
         self.history = self.history[-20:]
-        self.memory.log_activity("chat", "Desktop chat completed")
+        self.memory.log_activity("chat", f"desktop: {text[:140]}")
         return reply
 
     def clear_conversation(self) -> None:
