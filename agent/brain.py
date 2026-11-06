@@ -34,6 +34,10 @@ class ProviderNotConfigured(RuntimeError):
     """No approved key yet."""
 
 
+class ProviderAuthRejected(RuntimeError):
+    """The provider rejected the configured key (401/403)."""
+
+
 async def think(messages: list[dict]) -> str:
     if not settings.groq_api_key:
         raise ProviderNotConfigured("no approved Groq key configured")
@@ -45,6 +49,8 @@ async def think(messages: list[dict]) -> str:
         )
         if r.status_code in (402, 429):
             raise QuotaSpent("groq free tier limit reached")
+        if r.status_code in (401, 403):
+            raise ProviderAuthRejected("groq rejected the configured key")
         r.raise_for_status()
         try:
             content = r.json()["choices"][0]["message"]["content"]
