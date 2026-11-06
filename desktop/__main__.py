@@ -174,11 +174,11 @@ class MikeWindow:
             for _, kind, text in rows: items.insert("end", text)
         def add():
             text = simpledialog.askstring("Remember", "Fact to save on this computer:", parent=window)
-            if text and text.strip(): self.service.memory.remember("fact", text.strip()); refresh()
+            if text and text.strip(): self.service.add_fact(text.strip()); refresh()
         def delete():
             selected = items.curselection()
             if selected and messagebox.askyesno("Delete memory", "Permanently delete the selected fact?", parent=window):
-                self.service.memory.forget(rows[selected[0]][0]); refresh()
+                self.service.delete_fact(rows[selected[0]][0]); refresh()
         bar = ttk.Frame(window, padding=12)
         bar.pack(fill="x")
         ttk.Button(bar, text="Add fact", command=add).pack(side="left", padx=(0, 8))
