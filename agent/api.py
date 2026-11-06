@@ -112,6 +112,7 @@ async def status():
 @app.post("/chat")
 async def chat(body: ChatIn):
     if mem().is_paused():
+        mem().log_activity("chat", f"(while paused) {body.message[:140]}")
         return {"reply": "I'm paused. Start me again from the Activity tab and I'll pick this up."}
     memories = "\n".join(f"- {text}" for _, _, text in mem().recall())
     system = (
