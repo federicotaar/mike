@@ -52,6 +52,10 @@ Pending approvals, oldest first:
 
 Full decision history (pending, approved, denied), newest first.
 
+### `GET /approvals/{id}`
+
+One approval in any status, for a detail view. Unknown id returns a real 404.
+
 ### `POST /approvals/{id}`
 
 Body: `{"approve": true|false}`. Deciding an already-decided or unknown
