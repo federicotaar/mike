@@ -136,3 +136,20 @@ def test_memory_search_endpoint(client):
     assert [h["text"] for h in hits] == ["lives in Ferrara"]
     assert hits[0]["kind"] == "fact"
     assert client.get("/memories/search", params={"q": " "}).status_code == 400
+
+
+def test_chat_says_when_provider_rejects_key(client, monkeypatch):
+    import dataclasses
+    import httpx
+    from agent import brain
+    monkeypatch.setattr(api, "settings", dataclasses.replace(api.settings, groq_api_key="bad-key"))
+    monkeypatch.setattr(brain, "settings", api.settings)
+    class Client:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            return httpx.Response(401, request=httpx.Request("POST", url))
+    monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
+    reply = client.post("/chat", json={"message": "hi"}).json()["reply"]
+    assert "rejected" in reply.lower()
