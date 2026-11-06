@@ -180,3 +180,12 @@ def test_chat_while_paused_is_logged(client):
     assert "paused" in reply.lower()
     rows = client.get("/activity", params={"kind": "chat"}).json()
     assert any("(while paused)" in r["summary"] for r in rows)
+
+
+def test_get_single_approval(client):
+    aid = api.memory.request_approval("text Marco", "full detail here")
+    row = client.get(f"/approvals/{aid}").json()
+    assert row["summary"] == "text Marco"
+    assert row["detail"] == "full detail here"
+    assert row["status"] == "pending"
+    assert client.get("/approvals/999999").status_code == 404
