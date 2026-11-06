@@ -161,6 +161,17 @@ async def decide_approval(approval_id: int, body: ApprovalDecision):
     return {"ok": True}
 
 
+@app.get("/memories/search")
+async def search_memories(q: str = ""):
+    """Find active memories containing the query text, case-insensitive."""
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="q must not be blank")
+    return [
+        {"id": str(i), "kind": k, "text": t}
+        for i, k, t in mem().search_memories(q)
+    ]
+
+
 @app.delete("/memories/{memory_id}")
 async def delete_memory(memory_id: int):
     """The user owns their memory: delete one for good, with a real 404."""
