@@ -155,3 +155,13 @@ def test_desktop_fact_count(tmp_path):
     assert service.fact_count() == 0
     service.memory.remember("fact", "lives in Ferrara")
     assert service.fact_count() == 1
+
+
+def test_desktop_add_and_delete_fact_are_logged(tmp_path):
+    service = DesktopService(tmp_path)
+    fid = service.add_fact("likes short answers")
+    assert service.delete_fact(fid) is True
+    assert service.delete_fact(fid) is False
+    summaries = [r["summary"] for r in service.activity(kind="memory")]
+    assert any("saved fact" in s for s in summaries)
+    assert any("deleted fact" in s for s in summaries)
