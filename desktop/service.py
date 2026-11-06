@@ -40,7 +40,7 @@ class DesktopService:
                 json={"model": GROQ_MODEL, "messages": [{"role": "system", "content": system}] + self.history[-20:] + [{"role": "user", "content": text}]})
             if response.status_code in (402, 429):
                 return "Groq refused this request because of an account or quota limit. No fallback was used."
-            if response.status_code == 401:
+            if response.status_code in (401, 403):
                 return "Groq rejected this key. Check it and try again."
             response.raise_for_status()
             try:
