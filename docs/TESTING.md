@@ -24,6 +24,7 @@ The suite covers the app's contract with the core:
 - `test_quota.py` - the local daily cap counts real requests only
 - `test_regressions.py` - pinned regressions from earlier bugs
 - `test_proactive.py` - the approvals digest speaks once per pending set
+- `test_scheduler.py` - digest cadence env parsing
 - `test_ios_version.py` - app version stays in sync with VERSION
 
 `python-tests.yml` runs this suite in CI on every backend change.
