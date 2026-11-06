@@ -30,6 +30,8 @@ Edit `.env`:
 | `MIKE_TOKEN` | Bearer token the app uses | Yes, before any tunnel |
 | `GROQ_API_KEY` | Groq key for chat replies | Only after you approve it |
 | `GROQ_MODEL` | Model override | No (default `openai/gpt-oss-120b`) |
+| `MIKE_GROQ_TIMEOUT` | Seconds before a model call gives up | No (default `60`) |
+| `MIKE_DIGEST_MINUTES` | Minutes between approvals-digest checks | No (default `15`, minimum 1) |
 | `NTFY_TOPIC` | ntfy.sh topic for push | No |
 | `DB_PATH` | SQLite location | No (default `./mike.db`) |
 | `HOST` / `PORT` | Used by `python -m agent.main` | No (default `127.0.0.1:8787`); `run.sh` explicitly binds loopback |
