@@ -105,3 +105,13 @@ def test_approvals_history_rejects_bad_limit(mem):
     with pytest.raises(ValueError):
         mem.approvals_history(limit=0)
     assert len(mem.approvals_history(limit=1)) == 1
+
+
+def test_approval_by_id_hit_and_miss(mem):
+    aid = mem.request_approval("call Marco", "context")
+    row = mem.approval_by_id(aid)
+    assert row["summary"] == "call Marco"
+    assert row["status"] == "pending"
+    mem.decide_approval(aid, True)
+    assert mem.approval_by_id(aid)["status"] == "approved"
+    assert mem.approval_by_id(999999) is None
