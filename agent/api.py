@@ -166,10 +166,10 @@ async def approvals_history():
 @app.get("/approvals/{approval_id}")
 async def get_approval(approval_id: int):
     """One approval in any status, for the detail view. Real 404 when unknown."""
-    for row in mem().approvals_history(limit=500):
-        if row["id"] == str(approval_id):
-            return row
-    raise HTTPException(status_code=404, detail="no approval with that id")
+    row = mem().approval_by_id(approval_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="no approval with that id")
+    return row
 
 
 @app.post("/approvals/{approval_id}")
