@@ -67,7 +67,10 @@ server needed:
    the on-device model).
 2. The core binds to 127.0.0.1 and requires a bearer token before any tunnel
    exposes it.
-3. Phone memory/reminder writes wait for an approval. Messaging, spending,
-   public posting and new-account tools are not implemented. The core's
+3. Phone memory/reminder writes wait for an approval. Google writes
+   (calendar events, Gmail drafts) exist but are off unless the user opts in,
+   and each one still waits for an approval; there is no send/delete path.
+   Messaging, spending, public posting and new-account tools are not
+   implemented. The core's
    guardrail name list is not a complete enforcement layer for future tools.
    Self-edit execution is disabled; see `SAFETY.md` for implemented limits.
