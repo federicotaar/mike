@@ -113,6 +113,22 @@ class Memory:
         return rows.fetchall()
 
     @synchronized
+    def count_memories(self, kind: str | None = None) -> int:
+        """How many active memories exist, optionally only one kind."""
+        if kind is not None and kind not in MEMORY_KINDS:
+            raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
+        if kind is None:
+            row = self.db.execute(
+                "SELECT COUNT(*) FROM memories WHERE superseded_by IS NULL"
+            ).fetchone()
+        else:
+            row = self.db.execute(
+                "SELECT COUNT(*) FROM memories WHERE superseded_by IS NULL AND kind=?",
+                (kind,),
+            ).fetchone()
+        return int(row[0])
+
+    @synchronized
     def forget(self, memory_id: int) -> bool:
         """User deleted a memory for good. Returns False when no such memory."""
         cur = self.db.execute("DELETE FROM memories WHERE id=?", (memory_id,))
