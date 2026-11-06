@@ -87,3 +87,14 @@ def test_digest_flattens_newlines_in_summaries():
     m.request_approval("first line\nsecond line", "detail")
     assert run(run_approval_digest(m, r)) is True
     assert "first line second line" in r.sent[0][1]
+
+
+def test_digest_resends_after_pending_set_clears():
+    m, r = Memory(":memory:"), Recorder()
+    aid = m.request_approval("water the plants", "detail")
+    assert run(run_approval_digest(m, r)) is True
+    m.decide_approval(aid, True)
+    assert run(run_approval_digest(m, r)) is False  # nothing pending: signature resets
+    m.request_approval("water the plants", "detail")
+    assert run(run_approval_digest(m, r)) is True  # a new pending set speaks again
+    assert len(r.sent) == 2
