@@ -215,12 +215,19 @@ class Memory:
         return cur.lastrowid
 
     @synchronized
-    def recent_activity(self, limit: int = 100) -> list[dict]:
-        rows = self.db.execute(
-            "SELECT id, kind, summary, created_at FROM activity "
-            "ORDER BY created_at DESC LIMIT ?",
-            (limit,),
-        ).fetchall()
+    def recent_activity(self, limit: int = 100, kind: str | None = None) -> list[dict]:
+        if kind is None:
+            rows = self.db.execute(
+                "SELECT id, kind, summary, created_at FROM activity "
+                "ORDER BY created_at DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        else:
+            rows = self.db.execute(
+                "SELECT id, kind, summary, created_at FROM activity "
+                "WHERE kind=? ORDER BY created_at DESC LIMIT ?",
+                (kind, limit),
+            ).fetchall()
         return [
             {"id": str(r[0]), "kind": r[1], "summary": r[2], "time": r[3]}
             for r in rows
