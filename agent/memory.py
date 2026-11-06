@@ -234,6 +234,10 @@ class Memory:
     # ---- activity log --------------------------------------------------
     @synchronized
     def log_activity(self, kind: str, summary: str) -> int:
+        if not kind.strip():
+            raise ValueError("activity kind must not be blank")
+        if not summary.strip():
+            raise ValueError("activity summary must not be blank")
         cur = self.db.execute(
             "INSERT INTO activity (kind, summary, created_at) VALUES (?, ?, ?)",
             (kind, summary, time.time()),
