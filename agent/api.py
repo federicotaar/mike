@@ -106,6 +106,7 @@ async def status():
         "paused": mem().is_paused(),
         "version": core_version(),
         "uptimeSeconds": int(time.time() - STARTED_AT),
+        "memoryCount": mem().count_memories(),
     }
 
 
