@@ -171,3 +171,11 @@ def test_memories_list_endpoint(client):
     facts = client.get("/memories", params={"kind": "fact"}).json()
     assert [r["text"] for r in facts] == ["lives in Ferrara"]
     assert client.get("/memories", params={"limit": "0"}).status_code == 400
+
+
+def test_chat_while_paused_is_logged(client):
+    client.post("/stop")
+    reply = client.post("/chat", json={"message": "are you there"}).json()["reply"]
+    assert "paused" in reply.lower()
+    rows = client.get("/activity", params={"kind": "chat"}).json()
+    assert any("(while paused)" in r["summary"] for r in rows)
