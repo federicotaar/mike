@@ -50,12 +50,13 @@ class ProviderAuthRejected(RuntimeError):
 
 
 async def think(messages: list[dict]) -> str:
-    if not settings.groq_api_key:
+    key = settings.groq_api_key.strip()
+    if not key:
         raise ProviderNotConfigured("no approved Groq key configured")
     async with httpx.AsyncClient(timeout=_request_timeout()) as client:
         r = await client.post(
             GROQ_URL,
-            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
+            headers={"Authorization": f"Bearer {key}"},
             json={"model": GROQ_MODEL, "messages": messages},
         )
         if r.status_code in (402, 429):
