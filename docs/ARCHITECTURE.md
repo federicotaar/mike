@@ -22,6 +22,14 @@ SwiftUI app, iOS 17+, built for iPhone 13 and newer.
 | `AgentLoop.swift` | Tool-calling loop on top of a provider |
 | `Tooling.swift` | Tools Mike can call (time, memory, reminders) |
 | `AgentStore.swift` | On-phone persistence for chats, memory, approvals |
+| `MemoryView.swift` | Saved-memory screen: list, edit, delete |
+| `Models.swift` | Shared data models |
+| `GoogleAuth.swift` | Google sign-in (PKCE), tokens in the Keychain |
+| `GoogleReader.swift` | Read Gmail/Calendar data after sign-in |
+| `GoogleSync.swift` | Background refresh of the Google data cache |
+| `GoogleWrite.swift` | Opt-in, approval-gated writes (calendar events, Gmail drafts) |
+| `GoogleConnector.swift` | Wires the Google pieces into the provider loop |
+| `BackgroundCheck.swift` | Scheduled background refresh entry points |
 | `ProactiveEngine.swift` | Scheduled-notification proactivity |
 | `RuntimeSmoke.swift` | In-app smoke checks used by CI |
 
