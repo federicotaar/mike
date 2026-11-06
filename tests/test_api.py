@@ -189,3 +189,13 @@ def test_get_single_approval(client):
     assert row["detail"] == "full detail here"
     assert row["status"] == "pending"
     assert client.get("/approvals/999999").status_code == 404
+
+
+def test_memory_correction_endpoint(client):
+    mid = api.memory.remember("fact", "wakes at 8")
+    out = client.post(f"/memories/{mid}", json={"text": "wakes at 6:10"}).json()
+    assert out["corrected"] is True
+    texts = [r["text"] for r in client.get("/memories").json()]
+    assert texts == ["wakes at 6:10"]
+    assert client.post("/memories/999999", json={"text": "x"}).status_code == 404
+    assert client.post(f"/memories/{mid}", json={"text": " "}).status_code == 422
