@@ -60,3 +60,16 @@ def test_rejected_key_raises_distinct_error(monkeypatch, status):
     monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
     with pytest.raises(brain.ProviderAuthRejected):
         asyncio.run(brain.think([{"role": "user", "content": "hi"}]))
+
+
+def test_request_timeout_env_override(monkeypatch):
+    monkeypatch.setenv("MIKE_GROQ_TIMEOUT", "5")
+    assert brain._request_timeout() == 5.0
+    monkeypatch.setenv("MIKE_GROQ_TIMEOUT", "2.5")
+    assert brain._request_timeout() == 2.5
+    monkeypatch.setenv("MIKE_GROQ_TIMEOUT", "garbage")
+    assert brain._request_timeout() == 60.0
+    monkeypatch.setenv("MIKE_GROQ_TIMEOUT", "-3")
+    assert brain._request_timeout() == 60.0
+    monkeypatch.delenv("MIKE_GROQ_TIMEOUT")
+    assert brain._request_timeout() == 60.0
