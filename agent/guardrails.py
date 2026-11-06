@@ -18,4 +18,6 @@ PROTECTED_FILES = {"agent/guardrails.py"}  # the self-edit loop may not touch th
 
 
 def needs_approval(action: str) -> bool:
-    return action in ASK_FIRST
+    """Case and surrounding whitespace must never smuggle an action past the
+    ask-first list."""
+    return action.strip().lower() in ASK_FIRST
