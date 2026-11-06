@@ -6,6 +6,8 @@ from .config import settings
 
 
 async def ping(title: str, body: str, priority: int = 3, tags: list[str] | None = None) -> None:
+    if not 1 <= priority <= 5:
+        raise ValueError("ntfy priority must be between 1 (min) and 5 (max)")
     if not settings.ntfy_topic:
         return
     headers = {"Title": title, "Priority": str(priority)}
