@@ -140,6 +140,18 @@ class Memory:
         return cur.rowcount == 1
 
     @synchronized
+    def memory_by_id(self, memory_id: int) -> dict | None:
+        """One active memory as a dict, or None - edit screens read this before correcting."""
+        row = self.db.execute(
+            "SELECT id, kind, text, created_at FROM memories "
+            "WHERE id=? AND superseded_by IS NULL",
+            (memory_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {"id": row[0], "kind": row[1], "text": row[2], "createdAt": row[3]}
+
+    @synchronized
     def correct(self, old_id: int, new_text: str) -> int:
         """User corrected something: keep history, point old at new."""
         row = self.db.execute(
