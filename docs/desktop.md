@@ -7,8 +7,10 @@ It is an early preview, not a port of every iPhone feature.
 
 - Chat through your own Groq key. Enter it in the masked field at each launch.
 - The key stays in process memory. It is not saved to settings, SQLite or logs.
-- Add and permanently delete facts with the Memory window. Facts are included
-  in chat requests sent to Groq, so only save facts you want that provider to see.
+- Add, edit, search and permanently delete facts with the Memory window.
+  Facts are included in chat requests sent to Groq, so only save facts you
+  want that provider to see. An Activity window shows the local log (with a
+  kind filter) and an Approvals window records your decisions.
 - Pause/resume blocks new chat requests. It cannot recall a request already sent.
 - No automatic fallback provider and no automatic paid-plan upgrades.
 
