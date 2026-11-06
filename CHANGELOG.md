@@ -30,6 +30,12 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
   in the Memory layer, with tests.
 - Desktop: 403 treated as a rejected key, fact search and listing, activity
   kind filter, with tests.
+- Core: `GET /approvals/{id}` single-approval lookup via a direct query.
+- Core: input hardening - blank approval summaries, blank activity fields,
+  non-positive history limits, malformed ntfy tags and whitespace-only keys
+  are rejected instead of stored or sent.
+- Watch: the briefing push stays readable when an event lacks a title or
+  time.
 
 ## [0.4.3] - 2026-10-26
 
