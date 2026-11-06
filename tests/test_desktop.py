@@ -173,3 +173,9 @@ def test_desktop_chat_activity_names_the_request(tmp_path, monkeypatch):
     service.chat("what is on my calendar today")
     rows = service.activity(kind="chat")
     assert any("what is on my calendar" in r["summary"] for r in rows)
+
+
+def test_desktop_decide_unknown_approval_is_false(tmp_path):
+    service = DesktopService(tmp_path)
+    assert service.decide(999999, True) is False
+    assert service.activity(kind="approval") == []
