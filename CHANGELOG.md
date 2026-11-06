@@ -19,6 +19,17 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
   run in CI.
 - iPhone (source only, no release yet): Saved memory screen with edit and
   delete, linked from Settings.
+- Core: `GET /memories` (list) and `GET /memories/search?q=` (substring
+  lookup), `/activity?kind=` filtering, `uptimeSeconds` in `/status`.
+- Core: rejected provider keys (401/403) get their own honest chat reply,
+  distinct from a spent quota.
+- Core: `MIKE_GROQ_TIMEOUT` and `MIKE_DIGEST_MINUTES` settings; a negative
+  `MIKE_LOCAL_DAILY_CAP` clamps to no cap; out-of-range ntfy priorities are
+  rejected; the digest clips long approval summaries.
+- Core: memory search, counts, single-memory lookup and activity filtering
+  in the Memory layer, with tests.
+- Desktop: 403 treated as a rejected key, fact search and listing, activity
+  kind filter, with tests.
 
 ## [0.4.3] - 2026-10-26
 
