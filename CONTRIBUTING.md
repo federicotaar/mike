@@ -13,7 +13,8 @@ welcome.
    `agent/guardrails.py` get extra scrutiny and are never made by the
    agent itself.
 4. **Tests are the contract.** `python -m pytest tests` must stay green;
-   add coverage for behavior you change.
+   add coverage for behavior you change. The watch prep in `mike-watch/`
+   has its own suite: `npm test` in that directory (also runs in CI).
 
 ## Workflow
 
