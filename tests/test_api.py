@@ -199,3 +199,11 @@ def test_memory_correction_endpoint(client):
     assert texts == ["wakes at 6:10"]
     assert client.post("/memories/999999", json={"text": "x"}).status_code == 404
     assert client.post(f"/memories/{mid}", json={"text": " "}).status_code == 422
+
+
+def test_paused_chat_does_not_spend_a_request(client):
+    client.post("/stop")
+    before = client.get("/status").json()["requestsSentToday"]
+    client.post("/chat", json={"message": "hi"})
+    after = client.get("/status").json()["requestsSentToday"]
+    assert after == before
