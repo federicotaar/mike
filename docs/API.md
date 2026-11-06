@@ -56,6 +56,11 @@ Full decision history (pending, approved, denied), newest first.
 Body: `{"approve": true|false}`. Deciding an already-decided or unknown
 approval returns a real 404.
 
+### `GET /memories`
+
+Active memories, newest first: `[{"id", "kind", "text"}]`. Optional
+`limit` (1-500, default 50) and `kind` (`preference`, `fact` or `feedback`).
+
 ### `GET /memories/search?q=...`
 
 Case-insensitive substring search over active memories, newest first:
