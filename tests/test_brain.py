@@ -45,3 +45,18 @@ def test_malformed_provider_response_fails_cleanly(monkeypatch, payload):
     monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
     with pytest.raises(brain.InvalidProviderResponse):
         asyncio.run(brain.think([]))
+
+
+@pytest.mark.parametrize("status", [401, 403])
+def test_rejected_key_raises_distinct_error(monkeypatch, status):
+    import httpx
+    monkeypatch.setattr(brain, "settings", dataclasses.replace(brain.settings, groq_api_key="bad-key"))
+    class Client:
+        def __init__(self, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def post(self, url, **kwargs):
+            return httpx.Response(status, request=httpx.Request("POST", url))
+    monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
+    with pytest.raises(brain.ProviderAuthRejected):
+        asyncio.run(brain.think([{"role": "user", "content": "hi"}]))
