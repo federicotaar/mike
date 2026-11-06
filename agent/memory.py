@@ -140,6 +140,19 @@ class Memory:
         return cur.rowcount == 1
 
     @synchronized
+    def export_memories(self) -> list[dict]:
+        """Every active memory with its creation time - a portable backup the
+        user owns, newest first."""
+        rows = self.db.execute(
+            "SELECT id, kind, text, created_at FROM memories "
+            "WHERE superseded_by IS NULL ORDER BY created_at DESC"
+        ).fetchall()
+        return [
+            {"id": r[0], "kind": r[1], "text": r[2], "createdAt": r[3]}
+            for r in rows
+        ]
+
+    @synchronized
     def memory_by_id(self, memory_id: int) -> dict | None:
         """One active memory as a dict, or None - edit screens read this before correcting."""
         row = self.db.execute(
