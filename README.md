@@ -15,9 +15,10 @@
 ---
 
 Mike combines an iOS app with a portable Python agent core. Ubuntu, Windows
-and macOS desktop clients are now in early preview development. A native chat
-window supports session-only Groq keys, saved facts and pause controls. Packages
-are under native build and smoke testing, not yet released.
+and macOS desktop clients are in early preview: the first packages
+(`desktop-v0.1.0-preview.1` on the Releases page) ship a native chat window
+with session-only Groq keys, saved facts and pause controls, still unsigned
+and under smoke testing.
 The iPhone app remains available as a sideloadable IPA.
 On first launch it asks one question: **where should Mike's thinking happen?**
 You pick, and you can change your mind later in Settings - your chats and
