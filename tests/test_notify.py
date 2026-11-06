@@ -31,3 +31,10 @@ def test_ping_rejects_out_of_range_priority():
     for bad in (0, 6, -1):
         with pytest.raises(ValueError):
             asyncio.run(notify.ping("t", "b", priority=bad))
+
+
+def test_ping_rejects_malformed_tags():
+    import pytest
+    for bad in (["a,b"], ["has space"], [""]):
+        with pytest.raises(ValueError):
+            asyncio.run(notify.ping("t", "b", tags=bad))
