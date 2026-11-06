@@ -152,3 +152,13 @@ def test_memory_by_id_returns_active_memory_or_none(tmp_path):
     assert m.memory_by_id(999999) is None
     m.forget(mid)
     assert m.memory_by_id(mid) is None
+
+
+def test_export_memories_returns_everything_active(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    old = m.remember("fact", "v1")
+    m.correct(old, "v2")
+    m.remember("preference", "short answers")
+    rows = m.export_memories()
+    assert [r["text"] for r in rows] == ["short answers", "v2"]
+    assert all("createdAt" in r for r in rows)
