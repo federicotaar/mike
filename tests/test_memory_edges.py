@@ -84,3 +84,9 @@ def test_recall_rejects_unknown_kind_and_bad_limit(mem):
         mem.recall(limit=0)
     with pytest.raises(ValueError):
         mem.recall(limit=-5)
+
+
+def test_request_approval_rejects_blank_summary(mem):
+    with pytest.raises(ValueError):
+        mem.request_approval("   ", "detail")
+    assert mem.pending_approvals() == []
