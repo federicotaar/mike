@@ -20,12 +20,14 @@ loopback only - never expose it on a network without a token.
   "requestsSentToday": 0,
   "localDailyCap": 0,
   "paused": false,
-  "version": "0.4.3"
+  "version": "0.4.4-preview.1",
+  "uptimeSeconds": 3721
 }
 ```
 
 `quotaRemainingToday` is honestly `null`: the provider's remaining free quota
-cannot be read, so Mike does not guess it. `/status` also returns
+cannot be read, so Mike does not guess it. `uptimeSeconds` is measured from
+the core's process start. `/status` also returns
 `requestsSentToday` (requests Mike itself counted today) and `localDailyCap`
 (the optional cap from `MIKE_LOCAL_DAILY_CAP`, `0` meaning no cap).
 
@@ -54,13 +56,19 @@ Full decision history (pending, approved, denied), newest first.
 Body: `{"approve": true|false}`. Deciding an already-decided or unknown
 approval returns a real 404.
 
+### `GET /memories/search?q=...`
+
+Case-insensitive substring search over active memories, newest first:
+`[{"id", "kind", "text"}]`. A blank `q` returns a real 400.
+
 ### `DELETE /memories/{id}`
 
 Deletes a memory for good. Unknown id returns a real 404.
 
 ### `GET /activity`
 
-Recent activity: `[{"id", "kind", "summary", "time"}]`.
+Recent activity: `[{"id", "kind", "summary", "time"}]`. The optional `kind`
+query parameter filters to one activity kind (for example `?kind=chat`).
 
 ### `POST /stop`, `POST /start`
 
