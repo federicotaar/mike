@@ -210,6 +210,8 @@ class Memory:
     @synchronized
     def approvals_history(self, limit: int = 100) -> list[dict]:
         """All approvals, newest first, any status - the full record, not just pending."""
+        if limit < 1:
+            raise ValueError("limit must be at least 1")
         rows = self.db.execute(
             "SELECT id, summary, detail, created_at, status FROM approvals "
             "ORDER BY created_at DESC LIMIT ?",
