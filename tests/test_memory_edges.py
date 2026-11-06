@@ -98,3 +98,10 @@ def test_log_activity_rejects_blank_fields(mem):
     with pytest.raises(ValueError):
         mem.log_activity("chat", "  ")
     assert mem.recent_activity() == []
+
+
+def test_approvals_history_rejects_bad_limit(mem):
+    mem.request_approval("x", "y")
+    with pytest.raises(ValueError):
+        mem.approvals_history(limit=0)
+    assert len(mem.approvals_history(limit=1)) == 1
