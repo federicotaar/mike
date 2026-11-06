@@ -153,3 +153,11 @@ def test_chat_says_when_provider_rejects_key(client, monkeypatch):
     monkeypatch.setattr(brain.httpx, "AsyncClient", Client)
     reply = client.post("/chat", json={"message": "hi"}).json()["reply"]
     assert "rejected" in reply.lower()
+
+
+def test_activity_endpoint_filters_by_kind(client):
+    api.memory.log_activity("chat", "hello")
+    api.memory.log_activity("stop", "paused")
+    rows = client.get("/activity", params={"kind": "chat"}).json()
+    assert [r["summary"] for r in rows] == ["hello"]
+    assert len(client.get("/activity").json()) == 2
