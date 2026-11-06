@@ -19,6 +19,12 @@ The suite covers the app's contract with the core:
 - `test_guardrails.py` - sensitive actions always ask first
 - `test_selfedit.py` - self-edit execution refuses in every environment
 - `test_dbpath.py` - regression: repo-local default DB path
+- `test_memory_edges.py` - recall validation, correction chains, edge cases
+- `test_api_validation.py` - request validation rejects bad input with 422s
+- `test_quota.py` - the local daily cap counts real requests only
+- `test_regressions.py` - pinned regressions from earlier bugs
+- `test_proactive.py` - the approvals digest speaks once per pending set
+- `test_ios_version.py` - app version stays in sync with VERSION
 
 `python-tests.yml` runs this suite in CI on every backend change.
 
