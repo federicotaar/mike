@@ -67,10 +67,11 @@ No App Store, no paid Apple account:
 ## The agent core (optional backend)
 
 What exists today: a FastAPI core with a chat endpoint, an approvals queue,
-an activity log, SQLite memory, a test suite, and guardrails
+an activity log, SQLite memory with search and export, a scheduled
+approvals-digest job, a test suite, and guardrails
 (`agent/guardrails.py`).
 
-Planned, not built yet: scheduled jobs, and the self-improvement loop below.
+Planned, not built yet: the self-improvement loop below.
 
 ```bash
 set -euo pipefail
