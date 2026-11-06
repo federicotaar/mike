@@ -17,10 +17,11 @@ def client(tmp_path, monkeypatch):
 def test_status_shape(client):
     s = client.get("/status").json()
     assert set(s) == {"providerConfigured", "quotaRemainingToday", "requestsSentToday",
-                  "localDailyCap", "paused", "version", "uptimeSeconds"}
+                  "localDailyCap", "paused", "version", "uptimeSeconds", "memoryCount"}
     assert s["paused"] is False
     assert s["version"] and s["version"] != "unknown"
     assert isinstance(s["uptimeSeconds"], int) and s["uptimeSeconds"] >= 0
+    assert s["memoryCount"] == 0
 
 
 def test_approval_lifecycle(client):
