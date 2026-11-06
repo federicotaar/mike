@@ -117,3 +117,9 @@ def test_desktop_decision_is_recorded_once(tmp_path):
     assert service.decide(aid, True) is False
     assert service.pending_approvals() == []
     assert any("denied" in i["summary"] for i in service.activity())
+
+
+def test_desktop_403_treated_like_rejected_key(tmp_path, monkeypatch):
+    service = DesktopService(tmp_path); service.key = "bad-key"
+    mock_reply(monkeypatch, 403, {})
+    assert "rejected" in service.chat("hello").lower()
