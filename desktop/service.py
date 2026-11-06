@@ -63,6 +63,13 @@ class DesktopService:
         """What Mike did, newest first - the same log the iPhone Activity tab reads."""
         return self.memory.recent_activity(limit, kind=kind)
 
+    def facts(self, limit: int = 50) -> list[dict]:
+        """Saved facts for the memory window, newest first."""
+        return [
+            {"id": i, "kind": k, "text": t}
+            for i, k, t in self.memory.recall(limit=limit)
+        ]
+
     def search_facts(self, query: str) -> list[str]:
         """Saved facts containing the query text, case-insensitive."""
         return [t for _, _, t in self.memory.search_memories(query)]
