@@ -192,6 +192,28 @@ async def list_memories(limit: int = 50, kind: str = ""):
     return [{"id": str(i), "kind": k, "text": t} for i, k, t in rows]
 
 
+class MemoryCorrection(BaseModel):
+    text: str = Field(min_length=1, max_length=4000)
+
+    @field_validator("text")
+    @classmethod
+    def nonblank(cls, value):
+        if not value.strip():
+            raise ValueError("memory text must not be blank")
+        return value
+
+
+@app.post("/memories/{memory_id}")
+async def correct_memory(memory_id: int, body: MemoryCorrection):
+    """Correct a memory: history is kept, the new text becomes the active one."""
+    try:
+        new_id = mem().correct(memory_id, body.text)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="no active memory with that id")
+    mem().log_activity("memory", f"corrected memory #{memory_id}")
+    return {"corrected": True, "newId": str(new_id)}
+
+
 @app.get("/memories/search")
 async def search_memories(q: str = ""):
     """Find active memories containing the query text, case-insensitive."""
