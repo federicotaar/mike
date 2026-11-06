@@ -90,3 +90,11 @@ def test_request_approval_rejects_blank_summary(mem):
     with pytest.raises(ValueError):
         mem.request_approval("   ", "detail")
     assert mem.pending_approvals() == []
+
+
+def test_log_activity_rejects_blank_fields(mem):
+    with pytest.raises(ValueError):
+        mem.log_activity("", "something happened")
+    with pytest.raises(ValueError):
+        mem.log_activity("chat", "  ")
+    assert mem.recent_activity() == []
