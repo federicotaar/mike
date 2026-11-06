@@ -224,6 +224,18 @@ class Memory:
         ]
 
     @synchronized
+    def approval_by_id(self, approval_id: int) -> dict | None:
+        """One approval in any status, or None - direct lookup, no history scan."""
+        row = self.db.execute(
+            "SELECT id, summary, detail, created_at, status FROM approvals WHERE id=?",
+            (approval_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        return {"id": str(row[0]), "summary": row[1], "detail": row[2],
+                "createdAt": row[3], "status": row[4]}
+
+    @synchronized
     def decide_approval(self, approval_id: int, approved: bool) -> bool:
         """Returns False when no such pending approval exists."""
         cur = self.db.execute(
