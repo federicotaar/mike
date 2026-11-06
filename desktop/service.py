@@ -63,6 +63,10 @@ class DesktopService:
         """What Mike did, newest first - the same log the iPhone Activity tab reads."""
         return self.memory.recent_activity(limit, kind=kind)
 
+    def fact_count(self) -> int:
+        """How many facts are saved - shown on the memory window badge."""
+        return self.memory.count_memories()
+
     def facts(self, limit: int = 50) -> list[dict]:
         """Saved facts for the memory window, newest first."""
         return [
