@@ -140,3 +140,15 @@ def test_recent_activity_filters_by_kind(tmp_path):
     assert len(m.recent_activity()) == 2
     chats = m.recent_activity(kind="chat")
     assert [r["summary"] for r in chats] == ["hello"]
+
+
+def test_memory_by_id_returns_active_memory_or_none(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    mid = m.remember("fact", "lives in Ferrara")
+    row = m.memory_by_id(mid)
+    assert row["kind"] == "fact"
+    assert row["text"] == "lives in Ferrara"
+    assert "createdAt" in row
+    assert m.memory_by_id(999999) is None
+    m.forget(mid)
+    assert m.memory_by_id(mid) is None
