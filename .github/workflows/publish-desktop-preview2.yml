@@ -8,6 +8,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Download tested preview artifacts
         uses: actions/download-artifact@v4
         with:
