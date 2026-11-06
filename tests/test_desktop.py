@@ -148,3 +148,10 @@ def test_desktop_facts_listing(tmp_path):
     rows = service.facts()
     assert [r["text"] for r in rows] == ["short answers", "lives in Ferrara"]
     assert rows[0]["kind"] == "preference"
+
+
+def test_desktop_fact_count(tmp_path):
+    service = DesktopService(tmp_path)
+    assert service.fact_count() == 0
+    service.memory.remember("fact", "lives in Ferrara")
+    assert service.fact_count() == 1
