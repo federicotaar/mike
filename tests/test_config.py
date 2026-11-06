@@ -18,3 +18,11 @@ def test_int_parsing():
     assert _as_int("8787", 1) == 8787
     assert _as_int("not-a-port", 8787) == 8787
     assert _as_int("", 8787) == 8787
+
+
+def test_daily_cap_clamps_negative_to_zero():
+    from agent.config import _as_cap
+    assert _as_cap("-5", 0) == 0
+    assert _as_cap("50", 0) == 50
+    assert _as_cap("0", 10) == 0
+    assert _as_cap("garbage", 25) == 25
