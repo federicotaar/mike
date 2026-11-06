@@ -52,3 +52,11 @@ test("push text counts mail and events", () => {
   const p = buildPush({ mail: [{}, {}], events: [{ title: "Math test", time: "08:00" }] });
   assert.equal(p.body, "2 new emails; 1 event soon (next: Math test at 08:00).");
 });
+
+test("push text handles events with missing title or time", () => {
+  const noTitle = buildPush({ events: [{ time: "09:00" }] });
+  assert.ok(noTitle.body.includes("untitled event at 09:00"));
+  const noTime = buildPush({ events: [{ title: "Dentist" }] });
+  assert.ok(noTime.body.includes("next: Dentist"));
+  assert.ok(!noTime.body.includes("undefined"));
+});
