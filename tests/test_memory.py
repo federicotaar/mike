@@ -110,3 +110,24 @@ def test_search_memories_skips_superseded_and_validates_input(tmp_path):
         m.search_memories("   ")
     with pytest.raises(ValueError):
         m.search_memories("x", limit=0)
+
+
+def test_count_memories_total_and_per_kind(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.remember("fact", "a")
+    m.remember("preference", "b")
+    m.remember("fact", "c")
+    assert m.count_memories() == 3
+    assert m.count_memories("fact") == 2
+    import pytest
+    with pytest.raises(ValueError):
+        m.count_memories("secret")
+
+
+def test_count_memories_excludes_superseded_and_deleted(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    old = m.remember("fact", "v1")
+    m.correct(old, "v2")
+    gone = m.remember("fact", "gone")
+    m.forget(gone)
+    assert m.count_memories() == 1
