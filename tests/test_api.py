@@ -126,3 +126,12 @@ def test_invalid_provider_reply_is_honest(client, monkeypatch):
     response = client.post("/chat", json={"message": "hello"})
     assert response.status_code == 200
     assert "no usable reply" in response.json()["reply"]
+
+
+def test_memory_search_endpoint(client):
+    api.memory.remember("fact", "lives in Ferrara")
+    api.memory.remember("preference", "short answers")
+    hits = client.get("/memories/search", params={"q": "ferrara"}).json()
+    assert [h["text"] for h in hits] == ["lives in Ferrara"]
+    assert hits[0]["kind"] == "fact"
+    assert client.get("/memories/search", params={"q": " "}).status_code == 400
