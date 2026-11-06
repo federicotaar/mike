@@ -165,3 +165,11 @@ def test_desktop_add_and_delete_fact_are_logged(tmp_path):
     summaries = [r["summary"] for r in service.activity(kind="memory")]
     assert any("saved fact" in s for s in summaries)
     assert any("deleted fact" in s for s in summaries)
+
+
+def test_desktop_chat_activity_names_the_request(tmp_path, monkeypatch):
+    service = DesktopService(tmp_path); service.key = "test"
+    mock_reply(monkeypatch, 200, {"choices": [{"message": {"content": "hi"}}]})
+    service.chat("what is on my calendar today")
+    rows = service.activity(kind="chat")
+    assert any("what is on my calendar" in r["summary"] for r in rows)
