@@ -207,3 +207,11 @@ def test_paused_chat_does_not_spend_a_request(client):
     client.post("/chat", json={"message": "hi"})
     after = client.get("/status").json()["requestsSentToday"]
     assert after == before
+
+
+def test_deleted_memory_leaves_the_listing(client):
+    mid = api.memory.remember("fact", "temporary fact")
+    assert any(r["text"] == "temporary fact" for r in client.get("/memories").json())
+    client.delete(f"/memories/{mid}")
+    assert all(r["text"] != "temporary fact" for r in client.get("/memories").json())
+    assert client.get("/memories/search", params={"q": "temporary"}).json() == []
