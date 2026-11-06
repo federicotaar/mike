@@ -71,6 +71,12 @@ Active memories, newest first: `[{"id", "kind", "text"}]`. Optional
 Case-insensitive substring search over active memories, newest first:
 `[{"id", "kind", "text"}]`. A blank `q` returns a real 400.
 
+### `POST /memories/{id}`
+
+Body: `{"text": "..."}` (non-empty). Corrects a memory: the old text stays
+as history, the new text becomes the active one. Returns
+`{"corrected": true, "newId": "..."}`. Unknown id returns a real 404.
+
 ### `DELETE /memories/{id}`
 
 Deletes a memory for good. Unknown id returns a real 404.
