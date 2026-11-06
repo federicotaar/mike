@@ -123,3 +123,11 @@ def test_desktop_403_treated_like_rejected_key(tmp_path, monkeypatch):
     service = DesktopService(tmp_path); service.key = "bad-key"
     mock_reply(monkeypatch, 403, {})
     assert "rejected" in service.chat("hello").lower()
+
+
+def test_desktop_search_facts(tmp_path):
+    service = DesktopService(tmp_path)
+    service.memory.remember("fact", "lives in Ferrara")
+    service.memory.remember("preference", "short answers")
+    assert service.search_facts("ferrara") == ["lives in Ferrara"]
+    assert service.search_facts("nothing-matches-this") == []
