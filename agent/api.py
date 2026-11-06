@@ -193,8 +193,9 @@ async def delete_memory(memory_id: int):
 
 
 @app.get("/activity")
-async def activity():
-    return mem().recent_activity()
+async def activity(kind: str = ""):
+    """Newest activity first; ?kind=chat filters to one kind."""
+    return mem().recent_activity(kind=kind.strip() or None)
 
 
 @app.post("/stop")
