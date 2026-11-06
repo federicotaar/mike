@@ -17,9 +17,11 @@
 ## Data ownership
 
 The phone keeps its own JSON memory and activity files. The optional core
-uses a separate SQLite database. They are not synced. The core provides a
-memory deletion endpoint; an in-app memory editor is not implemented.
-Activity is an ordinary local record, not a tamper-proof audit log.
+uses a separate SQLite database. They are not synced. The core provides
+memory list, search, correction and deletion endpoints, and the iPhone app
+has a Saved memory screen with edit and delete (built in CI, not yet
+released). Activity is an ordinary local record, not a tamper-proof audit
+log.
 
 The backend stop endpoint pauses backend chat. It does not cancel phone
 notifications or stop the phone's direct Groq/on-device provider. iOS local
