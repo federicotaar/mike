@@ -131,3 +131,11 @@ def test_desktop_search_facts(tmp_path):
     service.memory.remember("preference", "short answers")
     assert service.search_facts("ferrara") == ["lives in Ferrara"]
     assert service.search_facts("nothing-matches-this") == []
+
+
+def test_desktop_activity_filters_by_kind(tmp_path):
+    service = DesktopService(tmp_path)
+    service.memory.log_activity("chat", "hello")
+    service.memory.log_activity("stop", "paused")
+    assert [r["summary"] for r in service.activity(kind="chat")] == ["hello"]
+    assert len(service.activity()) == 2
