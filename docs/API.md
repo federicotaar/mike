@@ -21,7 +21,8 @@ loopback only - never expose it on a network without a token.
   "localDailyCap": 0,
   "paused": false,
   "version": "0.4.4-preview.1",
-  "uptimeSeconds": 3721
+  "uptimeSeconds": 3721,
+  "memoryCount": 12
 }
 ```
 
