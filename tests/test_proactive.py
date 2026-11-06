@@ -69,3 +69,21 @@ def test_scheduler_registers_only_the_digest_job():
             s.shutdown(wait=False)
 
     assert run(go()) == ["approval-digest"]
+
+
+def test_digest_clips_long_summaries():
+    m, r = Memory(":memory:"), Recorder()
+    long_summary = "Review this   very long\napproval request " + "x" * 200
+    m.request_approval(long_summary, "detail")
+    assert run(run_approval_digest(m, r)) is True
+    line = r.sent[0][1].splitlines()[1]
+    assert line.startswith("- ")
+    assert len(line) <= 103  # "- " + 100 clipped chars
+    assert line.endswith("\u2026")
+
+
+def test_digest_flattens_newlines_in_summaries():
+    m, r = Memory(":memory:"), Recorder()
+    m.request_approval("first line\nsecond line", "detail")
+    assert run(run_approval_digest(m, r)) is True
+    assert "first line second line" in r.sent[0][1]
