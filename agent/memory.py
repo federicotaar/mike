@@ -186,6 +186,8 @@ class Memory:
     # ---- approval queue ----------------------------------------------
     @synchronized
     def request_approval(self, summary: str, detail: str) -> int:
+        if not summary.strip():
+            raise ValueError("approval summary must not be blank")
         cur = self.db.execute(
             "INSERT INTO approvals (summary, detail, created_at) VALUES (?, ?, ?)",
             (summary, detail, time.time()),
