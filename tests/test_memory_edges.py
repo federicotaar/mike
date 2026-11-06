@@ -75,3 +75,12 @@ def test_request_counter_resets_on_new_day(mem):
     assert mem.count_request("2026-11-05") == 2
     assert mem.requests_today("2026-11-06") == 0
     assert mem.count_request("2026-11-06") == 1
+
+
+def test_recall_rejects_unknown_kind_and_bad_limit(mem):
+    with pytest.raises(ValueError):
+        mem.recall(kind="secret")
+    with pytest.raises(ValueError):
+        mem.recall(limit=0)
+    with pytest.raises(ValueError):
+        mem.recall(limit=-5)
