@@ -6,6 +6,7 @@ not built yet, the API says so instead of pretending.
 from __future__ import annotations
 from pathlib import Path
 import secrets
+import time
 from contextlib import asynccontextmanager
 
 import httpx
@@ -27,6 +28,7 @@ async def require_token(authorization: str = Header(default="")):
 
 
 VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
+STARTED_AT = time.time()  # process start, for honest uptime reporting
 
 
 def core_version() -> str:
@@ -97,6 +99,7 @@ async def status():
         "localDailyCap": settings.local_daily_cap,
         "paused": mem().is_paused(),
         "version": core_version(),
+        "uptimeSeconds": int(time.time() - STARTED_AT),
     }
 
 
