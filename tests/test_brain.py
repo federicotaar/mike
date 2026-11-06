@@ -73,3 +73,9 @@ def test_request_timeout_env_override(monkeypatch):
     assert brain._request_timeout() == 60.0
     monkeypatch.delenv("MIKE_GROQ_TIMEOUT")
     assert brain._request_timeout() == 60.0
+
+
+def test_whitespace_only_key_fails_closed(monkeypatch):
+    monkeypatch.setattr(brain, "settings", dataclasses.replace(brain.settings, groq_api_key="   \n"))
+    with pytest.raises(brain.ProviderNotConfigured):
+        asyncio.run(brain.think([{"role": "user", "content": "hi"}]))
