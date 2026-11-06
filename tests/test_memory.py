@@ -89,3 +89,24 @@ def test_concurrent_correction_has_single_winner(tmp_path):
         outcomes = list(pool.map(correct, range(20)))
     assert sum(v is not None for v in outcomes) == 1
     assert len(m.recall()) == 1
+
+
+def test_search_memories_finds_substring_case_insensitive(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.remember("fact", "Lives in Ferrara")
+    m.remember("preference", "short answers")
+    hits = m.search_memories("ferrara")
+    assert [t for _, _, t in hits] == ["Lives in Ferrara"]
+
+
+def test_search_memories_skips_superseded_and_validates_input(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    old = m.remember("fact", "wakes at 8")
+    m.correct(old, "wakes at 6:10")
+    assert m.search_memories("wakes at 8") == []
+    assert [t for _, _, t in m.search_memories("6:10")] == ["wakes at 6:10"]
+    import pytest
+    with pytest.raises(ValueError):
+        m.search_memories("   ")
+    with pytest.raises(ValueError):
+        m.search_memories("x", limit=0)
