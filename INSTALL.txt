@@ -13,10 +13,10 @@ GET THE FOLDER (one of these):
   that folder IS the project root (it directly contains agent/, tests/...).
   Or clone fresh:
     cd ~
-    git clone https://github.com/federicotaranudev/mike.git
+    git clone https://github.com/federicotaar/mike.git
     cd mike
   Already have ~/mike from an earlier try? Don't git pull over your files:
-    cd ~ && mv mike mike-old && git clone https://github.com/federicotaranudev/mike.git && cd mike
+    cd ~ && mv mike mike-old && git clone https://github.com/federicotaar/mike.git && cd mike
 
 SETUP (from inside the project folder, one line at a time):
   sudo apt update && sudo apt install -y python3 python3-venv git
