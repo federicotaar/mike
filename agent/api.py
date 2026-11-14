@@ -244,9 +244,11 @@ async def delete_memory(memory_id: int):
 
 
 @app.get("/activity")
-async def activity(kind: str = ""):
+async def activity(kind: str = "", limit: int = 100):
     """Newest activity first; ?kind=chat filters to one kind."""
-    return mem().recent_activity(kind=kind.strip() or None)
+    if limit < 1 or limit > 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+    return mem().recent_activity(limit=limit, kind=kind.strip() or None)
 
 
 @app.post("/stop")
