@@ -1,6 +1,5 @@
 """Exercise the window code paths with a stubbed tkinter (no display needed)."""
 import sys
-import types
 from unittest.mock import MagicMock
 
 import pytest
