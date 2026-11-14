@@ -60,7 +60,7 @@ def main():
     pop.destroy()
 
     # Approve/Deny with nothing selected must do nothing.
-    c = mem.request_approval("[TEST] third", "z")
+    mem.request_approval("[TEST] third", "z")
     button(root, "Approvals").invoke()
     root.update()
     (pop,) = popups(root)
