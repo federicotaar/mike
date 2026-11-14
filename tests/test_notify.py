@@ -38,3 +38,9 @@ def test_ping_rejects_malformed_tags():
     for bad in (["a,b"], ["has space"], [""]):
         with pytest.raises(ValueError):
             asyncio.run(notify.ping("t", "b", tags=bad))
+
+
+def test_ping_rejects_blank_title():
+    import pytest
+    with pytest.raises(ValueError):
+        asyncio.run(notify.ping("   ", "body"))
