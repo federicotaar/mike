@@ -227,3 +227,11 @@ def test_memories_export_is_portable_and_skips_superseded(client):
     assert all(set(m) == {"id", "kind", "text", "createdAt"} for m in data)
     texts = [m["text"] for m in data]
     assert "new city" in texts and "old city" not in texts
+
+
+def test_activity_limit_is_validated_and_applied(client):
+    assert client.get("/activity", params={"limit": 0}).status_code == 400
+    assert client.get("/activity", params={"limit": 501}).status_code == 400
+    api.memory.log_activity("chat", "one")
+    api.memory.log_activity("chat", "two")
+    assert len(client.get("/activity", params={"limit": 1}).json()) == 1
