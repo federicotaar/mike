@@ -31,6 +31,13 @@ def _as_cap(value: str, default: int) -> int:
     return max(0, _as_int(value, default))
 
 
+def _as_port(value: str, default: int) -> int:
+    """Parse a TCP port; anything outside 1-65535 would only fail later inside
+    uvicorn, so fall back to the default while the message is still clear."""
+    port = _as_int(value, default)
+    return port if 1 <= port <= 65535 else default
+
+
 @dataclass(frozen=True)
 class Settings:
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
@@ -43,7 +50,7 @@ class Settings:
     # Optional local safety cap on model requests per day. 0 = no cap. This is the
     # user's own limit, NOT the provider's quota, which Mike cannot read.
     local_daily_cap: int = _as_cap(os.getenv("MIKE_LOCAL_DAILY_CAP", "0"), 0)
-    port: int = _as_int(os.getenv("PORT", "8787"), 8787)
+    port: int = _as_port(os.getenv("PORT", "8787"), 8787)
 
 
 settings = Settings()
