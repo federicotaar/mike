@@ -228,6 +228,12 @@ async def search_memories(q: str = ""):
     ]
 
 
+@app.get("/memories/export")
+async def export_memories():
+    """Portable backup of every active memory, including creation times."""
+    return mem().export_memories()
+
+
 @app.delete("/memories/{memory_id}")
 async def delete_memory(memory_id: int):
     """The user owns their memory: delete one for good, with a real 404."""
