@@ -87,13 +87,13 @@ class Memory:
         if kind is None:
             rows = self.db.execute(
                 "SELECT id, kind, text FROM memories "
-                "WHERE superseded_by IS NULL ORDER BY created_at DESC LIMIT ?",
+                "WHERE superseded_by IS NULL ORDER BY created_at DESC, id DESC LIMIT ?",
                 (limit,),
             )
         else:
             rows = self.db.execute(
                 "SELECT id, kind, text FROM memories "
-                "WHERE superseded_by IS NULL AND kind=? ORDER BY created_at DESC LIMIT ?",
+                "WHERE superseded_by IS NULL AND kind=? ORDER BY created_at DESC, id DESC LIMIT ?",
                 (kind, limit),
             )
         return rows.fetchall()
