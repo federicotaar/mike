@@ -162,3 +162,20 @@ def test_export_memories_returns_everything_active(tmp_path):
     rows = m.export_memories()
     assert [r["text"] for r in rows] == ["short answers", "v2"]
     assert all("createdAt" in r for r in rows)
+
+
+def test_search_memories_kind_filter(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.remember("fact", "lives in Mirandola")
+    m.remember("preference", "Mirandola coffee bar on Saturdays")
+    all_hits = m.search_memories("mirandola")
+    assert len(all_hits) == 2
+    fact_hits = m.search_memories("mirandola", kind="fact")
+    assert fact_hits == [(all_hits[1][0], "fact", "lives in Mirandola")]
+
+
+def test_search_memories_rejects_unknown_kind(tmp_path):
+    import pytest
+    m = Memory(str(tmp_path / "t.db"))
+    with pytest.raises(ValueError):
+        m.search_memories("anything", kind="bogus")
