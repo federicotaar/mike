@@ -99,21 +99,32 @@ class Memory:
         return rows.fetchall()
 
     @synchronized
-    def search_memories(self, query: str, limit: int = 50) -> list[tuple[int, str, str]]:
+    def search_memories(self, query: str, limit: int = 50, kind: str | None = None) -> list[tuple[int, str, str]]:
         """Case-insensitive substring search over active memories, newest first.
 
         instr() instead of LIKE so % and _ in the query stay literal text.
+        Optionally restrict the search to one memory kind.
         """
         if not query.strip():
             raise ValueError("search query must not be blank")
         if limit < 1:
             raise ValueError("limit must be at least 1")
-        rows = self.db.execute(
-            "SELECT id, kind, text FROM memories "
-            "WHERE superseded_by IS NULL AND instr(lower(text), lower(?)) > 0 "
-            "ORDER BY created_at DESC LIMIT ?",
-            (query, limit),
-        )
+        if kind is not None and kind not in MEMORY_KINDS:
+            raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
+        if kind is None:
+            rows = self.db.execute(
+                "SELECT id, kind, text FROM memories "
+                "WHERE superseded_by IS NULL AND instr(lower(text), lower(?)) > 0 "
+                "ORDER BY created_at DESC, id DESC LIMIT ?",
+                (query, limit),
+            )
+        else:
+            rows = self.db.execute(
+                "SELECT id, kind, text FROM memories "
+                "WHERE superseded_by IS NULL AND kind=? AND instr(lower(text), lower(?)) > 0 "
+                "ORDER BY created_at DESC, id DESC LIMIT ?",
+                (kind, query, limit),
+            )
         return rows.fetchall()
 
     @synchronized
