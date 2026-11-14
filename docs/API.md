@@ -69,7 +69,13 @@ Active memories, newest first: `[{"id", "kind", "text"}]`. Optional
 ### `GET /memories/search?q=...`
 
 Case-insensitive substring search over active memories, newest first:
-`[{"id", "kind", "text"}]`. A blank `q` returns a real 400.
+`[{"id", "kind", "text"}]`. A blank `q` returns a real 400. Optional
+`kind` restricts the search to one memory kind.
+
+### `GET /memories/export`
+
+Portable backup of every active memory with creation times:
+`[{"id", "kind", "text", "createdAt"}]`. Superseded memories are excluded.
 
 ### `POST /memories/{id}`
 
@@ -84,7 +90,8 @@ Deletes a memory for good. Unknown id returns a real 404.
 ### `GET /activity`
 
 Recent activity: `[{"id", "kind", "summary", "time"}]`. The optional `kind`
-query parameter filters to one activity kind (for example `?kind=chat`).
+query parameter filters to one activity kind (for example `?kind=chat`);
+optional `limit` (1-500, default 100) caps how many entries come back.
 
 ### `POST /stop`, `POST /start`
 
