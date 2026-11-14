@@ -215,3 +215,15 @@ def test_deleted_memory_leaves_the_listing(client):
     client.delete(f"/memories/{mid}")
     assert all(r["text"] != "temporary fact" for r in client.get("/memories").json())
     assert client.get("/memories/search", params={"q": "temporary"}).json() == []
+
+
+def test_memories_export_is_portable_and_skips_superseded(client):
+    api.memory.remember("fact", "old city")
+    old_id = api.memory.recall()[0][0]
+    api.memory.correct(old_id, "new city")
+    api.memory.remember("preference", "short answers")
+    data = client.get("/memories/export").json()
+    assert len(data) == 2
+    assert all(set(m) == {"id", "kind", "text", "createdAt"} for m in data)
+    texts = [m["text"] for m in data]
+    assert "new city" in texts and "old city" not in texts
