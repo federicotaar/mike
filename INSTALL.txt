@@ -23,7 +23,7 @@ SETUP (from inside the project folder, one line at a time):
   python3 -m venv .venv && source .venv/bin/activate
   pip install -r requirements.txt
   cp -n .env.example .env     # then edit .env: set MIKE_TOKEN (openssl rand -hex 24); leave GROQ_API_KEY empty
-  python3 -m pytest tests     # 12 tests should pass
+  python3 -m pytest tests     # 133 tests should pass
   DB_PATH=./mike.db uvicorn agent.api:app --host 127.0.0.1 --port 8787
 
 Notes:
