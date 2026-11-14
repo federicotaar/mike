@@ -4,7 +4,6 @@ import uvicorn
 
 from .api import app  # noqa: F401
 from .config import settings
-from .scheduler import start
 
 
 def main() -> None:
