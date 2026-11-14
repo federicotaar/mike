@@ -33,7 +33,7 @@ def changed_files(branch: str = "self-edit") -> list[str]:
     """Read-only: list files a branch touched."""
     out = subprocess.run(
         ["git", "diff", "--name-only", "main..." + branch],
-        capture_output=True, text=True,
+        capture_output=True, text=True, check=False,  # returncode inspected below
     )
     if out.returncode != 0:
         raise UnknownBranch(f"git cannot diff main...{branch}: {out.stderr.strip() or 'unknown ref'}")
