@@ -6,6 +6,12 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
 
 ## [Unreleased]
 
+### Fixed
+- Docs: INSTALL.txt pointed at the pre-rename GitHub account and claimed the
+  suite had 12 tests (now 133, verified with `pytest tests`).
+- `check.sh` stops with a clear message when .env or MIKE_TOKEN is missing
+  instead of sending an empty Bearer token.
+
 ### Added
 - Core: `/status` reports `requestsSentToday` and `localDailyCap`; an optional
   local cap (`MIKE_LOCAL_DAILY_CAP`, default off) can stop chat. The provider's
