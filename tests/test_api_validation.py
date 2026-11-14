@@ -49,3 +49,11 @@ def test_paused_chat_never_calls_the_model(open_client, monkeypatch):
     reply = open_client.post("/chat", json={"message": "hello"}).json()["reply"]
     assert "paused" in reply.lower()
     assert api.memory.requests_today() == 0
+
+
+def test_memories_rejects_unknown_kind(open_client):
+    bad = open_client.get("/memories", params={"kind": "bogus"})
+    assert bad.status_code == 400
+    open_client.post("/feedback", json={"text": "prefers espresso"})
+    ok = open_client.get("/memories", params={"kind": "feedback"})
+    assert ok.status_code == 200 and len(ok.json()) == 1
