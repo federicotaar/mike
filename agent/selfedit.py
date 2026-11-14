@@ -20,6 +20,10 @@ class ProtectedFileTouched(RuntimeError):
     pass
 
 
+class UnknownBranch(RuntimeError):
+    """The branch (or main) cannot be diffed - nothing to review."""
+
+
 class SelfEditDisabled(RuntimeError):
     """Raised whenever anything tries to execute self-edit code without a
     verified isolated sandbox. Fail closed: no exception path runs the code."""
@@ -29,8 +33,10 @@ def changed_files(branch: str = "self-edit") -> list[str]:
     """Read-only: list files a branch touched."""
     out = subprocess.run(
         ["git", "diff", "--name-only", "main..." + branch],
-        capture_output=True, text=True, check=True,
+        capture_output=True, text=True,
     )
+    if out.returncode != 0:
+        raise UnknownBranch(f"git cannot diff main...{branch}: {out.stderr.strip() or 'unknown ref'}")
     return [f for f in out.stdout.splitlines() if f]
 
 
