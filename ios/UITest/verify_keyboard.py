@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Pixel-verify the keyboard dismissal screenshots.
 
 Compares the bottom region (where the software keyboard lives) of each
@@ -8,7 +7,9 @@ PASS criteria:
   kb2-tap-dismissed / kb4-drag-dismissed are close to baseline (keyboard down)
 """
 import sys
+
 from PIL import Image, ImageChops
+
 
 def bottom_mean_diff(a, b):
     ia = Image.open(a).convert("RGB")
@@ -38,4 +39,5 @@ def main(d):
     print("KEYBOARD-UITEST " + ("ALL PASS" if ok else "FAILED"))
     sys.exit(0 if ok else 1)
 
-main(sys.argv[1] if len(sys.argv) > 1 else "/tmp/kbshots")
+if __name__ == "__main__":
+    main(sys.argv[1] if len(sys.argv) > 1 else "/tmp/kbshots")
