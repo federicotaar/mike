@@ -115,3 +115,13 @@ def test_approval_by_id_hit_and_miss(mem):
     mem.decide_approval(aid, True)
     assert mem.approval_by_id(aid)["status"] == "approved"
     assert mem.approval_by_id(999999) is None
+
+
+def test_recall_breaks_created_at_ties_newest_id_first(tmp_path):
+    m = Memory(str(tmp_path / "t.db"))
+    m.remember("fact", "remembered first")
+    m.remember("fact", "remembered second")
+    m.db.execute("UPDATE memories SET created_at=?", (1700000000.0,))
+    m.db.commit()
+    texts = [t for _, _, t in m.recall()]
+    assert texts == ["remembered second", "remembered first"]
