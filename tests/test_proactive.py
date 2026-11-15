@@ -98,3 +98,48 @@ def test_digest_resends_after_pending_set_clears():
     m.request_approval("water the plants", "detail")
     assert run(run_approval_digest(m, r)) is True  # a new pending set speaks again
     assert len(r.sent) == 2
+
+
+def test_digest_singular_and_plural_noun():
+    # one pending: "1 approval is"; two: "2 approvals are"
+    from agent.proactive import pending_digest
+
+    m = Memory(":memory:")
+    m.request_approval("one", "d")
+    _, text = pending_digest(m)
+    assert text.startswith("1 approval is waiting")
+    m.request_approval("two", "d")
+    _, text = pending_digest(m)
+    assert text.startswith("2 approvals are waiting")
+
+
+def test_digest_caps_list_at_five_and_counts_the_rest():
+    from agent.proactive import pending_digest
+
+    m = Memory(":memory:")
+    for i in range(7):
+        m.request_approval(f"approval {i}", "d")
+    _, text = pending_digest(m)
+    bullets = [ln for ln in text.splitlines() if ln.startswith("- ")]
+    assert len(bullets) == 5
+    assert text.rstrip().endswith("...and 2 more")
+
+
+def test_new_approval_after_digest_resends():
+    # the signature covers the pending SET, so adding one approval re-notifies
+    m, r = Memory(":memory:"), Recorder()
+    m.request_approval("first", "d")
+    assert run(run_approval_digest(m, r)) is True
+    m.request_approval("second", "d")
+    assert run(run_approval_digest(m, r)) is True
+    assert len(r.sent) == 2
+
+
+def test_clip_boundary_keeps_full_text_at_width():
+    from agent.proactive import _clip
+
+    exact = "x" * 100
+    assert _clip(exact) == exact
+    over = "x" * 101
+    clipped = _clip(over)
+    assert clipped.endswith("\u2026") and len(clipped) == 100
