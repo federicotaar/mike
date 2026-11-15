@@ -1,3 +1,7 @@
+# Manual simulator UI test for the chat keyboard flow. Compiles the iOS sources
+# # with the SIM_FORCE_GROQ chat variant, installs the app on the simulator and
+# # exercises real typing. Dispatch only, 25 minute cap.
+
 name: keyboard-uitest
 on:
   workflow_dispatch:
