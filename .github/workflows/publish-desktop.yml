@@ -1,3 +1,8 @@
+# Manual publisher for the reviewed desktop preview. Checks out the exact
+# # reviewed commit (pinned ref), downloads the artifacts of the pinned tested
+# # run and verifies the package inventory before publishing. Nothing is rebuilt
+# # at publish time, on purpose.
+
 name: Publish reviewed desktop preview
 on:
   workflow_dispatch:
