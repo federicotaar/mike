@@ -1,3 +1,7 @@
+# Runs the Python test suite on every change to the agent, the desktop app, the
+# # tests or their requirements. Triggers: push (limited to those paths), pull
+# # requests and manual dispatch. This is the fast gate that must stay green.
+
 name: python-tests
 
 on:
