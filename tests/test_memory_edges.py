@@ -125,3 +125,33 @@ def test_recall_breaks_created_at_ties_newest_id_first(tmp_path):
     m.db.commit()
     texts = [t for _, _, t in m.recall()]
     assert texts == ["remembered second", "remembered first"]
+
+
+def test_search_treats_like_metacharacters_as_literal(mem):
+    # instr() search: % and _ must match themselves, not act as wildcards
+    mem.remember("fact", "coverage is 100% on weekdays")
+    mem.remember("fact", "totally unrelated note")
+    hits = mem.search_memories("100%")
+    assert len(hits) == 1 and "100%" in hits[0][2]
+    mem.remember("fact", "file a_b.py")
+    hits = mem.search_memories("a_b")
+    assert len(hits) == 1 and "a_b" in hits[0][2]
+
+
+def test_kv_round_trip_overwrite_and_default(mem):
+    assert mem.get_kv("missing") is None
+    assert mem.get_kv("missing", "fallback") == "fallback"
+    mem.set_kv("theme", "dark")
+    assert mem.get_kv("theme") == "dark"
+    mem.set_kv("theme", "light")
+    assert mem.get_kv("theme") == "light"
+
+
+def test_correct_unknown_memory_rejected(mem):
+    # correcting an id that does not exist fails loudly, no phantom memory
+    import pytest
+
+    before = mem.count_memories()
+    with pytest.raises(ValueError):
+        mem.correct(9999, "fixed text")
+    assert mem.count_memories() == before
