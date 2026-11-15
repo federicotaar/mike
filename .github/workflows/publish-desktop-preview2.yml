@@ -1,3 +1,7 @@
+# Manual publisher for desktop preview 2. Downloads the artifacts of a specific,
+# # already-tested desktop-preview run (pinned run-id), verifies the .deb and its
+# # checksum, then publishes a new prerelease without replacing older releases.
+
 name: Publish desktop preview 2
 on:
   workflow_dispatch:
