@@ -1,3 +1,6 @@
+# Runs the mike-watch Node test suite whenever the watch app changes
+# # (mike-watch/**), on pull requests, and on manual dispatch.
+
 name: watch-tests
 
 on:
