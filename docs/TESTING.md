@@ -26,6 +26,11 @@ The suite covers the app's contract with the core:
 - `test_proactive.py` - the approvals digest speaks once per pending set
 - `test_scheduler.py` - digest cadence env parsing
 - `test_ios_version.py` - app version stays in sync with VERSION
+- `test_config_parsing.py` - env value coercion: bool spellings, int
+  fallback, port range
+- `test_desktop.py` - the desktop service: chat, facts, approvals and
+  activity without a backend
+- `test_desktop_window.py` - the desktop window's new-chat behavior
 
 `python-tests.yml` runs this suite in CI on every backend change.
 
