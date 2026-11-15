@@ -1,3 +1,7 @@
+# Manual screenshot harness: compiles several simulator variants of the app and
+# # captures their screens as artifacts, so UI changes can be eyeballed without
+# # a device. Dispatch only.
+
 name: sim-screenshots
 on:
   workflow_dispatch:
