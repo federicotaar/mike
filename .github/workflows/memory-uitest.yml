@@ -1,3 +1,7 @@
+# Manual simulator UI test for the memory tab. Compiles the SIM_TAB_MEMORY +
+# # SIM_MEMORY_FIXTURE variant, installs it and drives the memory UI against
+# # fixture data. Dispatch only, 25 minute cap.
+
 name: memory-uitest
 on:
   workflow_dispatch:
