@@ -1,3 +1,7 @@
+// Manual simulator self-test: runs real checks (Keychain roundtrip and
+// legacy UserDefaults migration, notifications, stores) and prints PASS/FAIL
+// lines. Launched by the CI harness documented in the workflows; honest skips
+// instead of fake passes where the simulator sandbox blocks a probe.
 import Foundation
 import UserNotifications
 
