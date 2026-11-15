@@ -179,3 +179,21 @@ def test_search_memories_rejects_unknown_kind(tmp_path):
     m = Memory(str(tmp_path / "t.db"))
     with pytest.raises(ValueError):
         m.search_memories("anything", kind="bogus")
+
+
+def test_synchronized_holds_the_instance_lock_during_the_call():
+    """The decorator must serialize on self._lock: a method that observes the
+    lock mid-call proves concurrent calls cannot interleave."""
+    import threading
+    from agent.memory import synchronized
+
+    class Dummy:
+        def __init__(self):
+            self._lock = threading.Lock()
+
+        @synchronized
+        def probe(self):
+            # locked by the decorator already: a non-blocking acquire fails
+            return self._lock.acquire(blocking=False)
+
+    assert Dummy().probe() is False
