@@ -8,6 +8,10 @@ from .config import settings
 async def ping(title: str, body: str, priority: int = 3, tags: list[str] | None = None) -> None:
     if not title.strip():
         raise ValueError("ntfy title must not be blank")
+    if "\n" in title or "\r" in title:
+        # the title travels as an HTTP header: a newline would make httpx reject
+        # the request with an obscure LocalProtocolError instead of this
+        raise ValueError("ntfy title must be a single line")
     if not 1 <= priority <= 5:
         raise ValueError("ntfy priority must be between 1 (min) and 5 (max)")
     for tag in tags or []:
