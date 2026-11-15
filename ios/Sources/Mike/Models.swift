@@ -1,3 +1,5 @@
+// Shared value types: chat messages, approvals, activity entries and the
+// small Codable records the tabs and stores pass around.
 import Foundation
 
 struct ChatMessage: Identifiable, Codable {
