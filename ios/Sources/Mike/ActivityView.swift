@@ -1,3 +1,6 @@
+// The Activity tab: what the agent has done. Lists the backend's activity
+// entries when the backend provider is selected (with pause / resume / stop
+// controls), or the on-device agent's run log otherwise.
 import SwiftUI
 
 struct ActivityView: View {
