@@ -1,3 +1,8 @@
+# Manual release pipeline for the Mike iPhone app. Runs only on workflow_dispatch:
+# # builds the unsigned IPA on macOS and publishes an immutable prerelease only
+# # when the 'publish' input is true. Nothing here fires on push, so day-to-day
+# # commits never produce releases.
+
 name: Build Mike IPA
 
 on:
