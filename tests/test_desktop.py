@@ -179,3 +179,16 @@ def test_desktop_decide_unknown_approval_is_false(tmp_path):
     service = DesktopService(tmp_path)
     assert service.decide(999999, True) is False
     assert service.activity(kind="approval") == []
+
+
+def test_data_directory_follows_xdg_and_ends_in_mike(tmp_path, monkeypatch):
+    import sys
+    from desktop.service import data_directory
+    if sys.platform.startswith("linux"):
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+        assert data_directory() == tmp_path / "Mike"
+        monkeypatch.delenv("XDG_DATA_HOME")
+        from pathlib import Path
+        assert data_directory() == Path.home() / ".local/share" / "Mike"
+    else:
+        assert data_directory().name == "Mike"
