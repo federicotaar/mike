@@ -1,3 +1,6 @@
+// The Chat tab: the conversation with Mike. Renders the message list, the
+// input field and the in-flight state; sending goes through the selected
+// provider (backend or the on-device agent).
 import SwiftUI
 
 struct ChatView: View {
