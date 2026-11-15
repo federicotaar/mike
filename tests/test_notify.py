@@ -40,6 +40,13 @@ def test_ping_rejects_malformed_tags():
             asyncio.run(notify.ping("t", "b", tags=bad))
 
 
+def test_ping_rejects_multiline_title():
+    import pytest
+    # a newline in the Title header would fail later inside httpx; reject it here
+    with pytest.raises(ValueError):
+        asyncio.run(notify.ping("one\ntwo", "body"))
+
+
 def test_ping_rejects_blank_title():
     import pytest
     with pytest.raises(ValueError):
