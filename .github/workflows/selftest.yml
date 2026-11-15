@@ -1,3 +1,6 @@
+# Manual behavior self-test on the iOS simulator: compiles the MikeSelfTest
+# # module from the app sources and runs it. Dispatch only, read-only token.
+
 name: selftest
 on:
   workflow_dispatch:
