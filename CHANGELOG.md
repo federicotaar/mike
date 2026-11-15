@@ -7,6 +7,8 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
 ## [Unreleased]
 
 ### Fixed
+- `notify.ping` rejects multi-line titles up front: the title travels as an
+  HTTP header, where a newline would surface as an obscure httpx error.
 - Docs: INSTALL.txt pointed at the pre-rename GitHub account and claimed the
   suite had 12 tests (now 133, verified with `pytest tests`).
 - `check.sh` stops with a clear message when .env or MIKE_TOKEN is missing
