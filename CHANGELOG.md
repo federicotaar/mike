@@ -6,6 +6,8 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
 
 ## [Unreleased]
 
+- mike-watch tests: singular push wording ("1 new email") and the bounded dedupe window (a hash that falls out of the window notifies again, one still inside stays quiet) are now pinned.
+
 ### Fixed
 - `notify.ping` rejects multi-line titles up front: the title travels as an
   HTTP header, where a newline would surface as an obscure httpx error.
