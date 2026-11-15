@@ -1,3 +1,8 @@
+# Manual 3-OS check (Ubuntu, Windows, macOS): installs the dependencies, runs
+# # pytest and boots the desktop GUI smoke test on each OS. Dispatch only; the
+# # artifacts it produces are verified and published later by the publish-desktop
+# # workflows, not here.
+
 name: desktop-preview
 on:
   workflow_dispatch:
