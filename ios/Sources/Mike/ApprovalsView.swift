@@ -1,3 +1,6 @@
+// The Approvals tab: every write the agent wants to make waits here for the
+// owner's yes. Shows the backend's pending approvals when the backend provider
+// is selected, or the on-device agent's queue otherwise.
 import SwiftUI
 
 struct ApprovalsView: View {
