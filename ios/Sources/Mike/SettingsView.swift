@@ -1,3 +1,5 @@
+// The Settings tab: choose the provider (backend or on-device), connect or
+// disconnect the Google account, and manage the Groq API key.
 import SwiftUI
 
 struct SettingsView: View {
