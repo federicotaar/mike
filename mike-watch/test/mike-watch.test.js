@@ -60,3 +60,23 @@ test("push text handles events with missing title or time", () => {
   assert.ok(noTime.body.includes("next: Dentist"));
   assert.ok(!noTime.body.includes("undefined"));
 });
+
+test("push text singular forms", () => {
+  const one = buildPush({ mail: [{}] });
+  assert.equal(one.body, "1 new email.");
+  const both = buildPush({ mail: [{}], events: [{}] });
+  assert.ok(both.body.startsWith("1 new email; 1 event soon"));
+});
+
+test("evicted ids look new again after the history window", async () => {
+  // with keep=2 the oldest hash falls off, so its item is fresh once more
+  const first = await newItems([{ id: "a" }, { id: "b" }], [], 2);
+  assert.equal(first.fresh.length, 2);
+  const second = await newItems([{ id: "c" }], first.seen, 2);
+  assert.deepEqual(second.fresh.map(i => i.id), ["c"]);
+  assert.equal(second.seen.length, 2);
+  // the hash dropped from the window (b) notifies again; one still in the
+  // window (a) stays quiet
+  const third = await newItems([{ id: "a" }, { id: "b" }], second.seen, 2);
+  assert.deepEqual(third.fresh.map(i => i.id), ["b"]);
+});
