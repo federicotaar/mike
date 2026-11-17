@@ -277,7 +277,7 @@ class Memory:
         if kind is None:
             rows = self.db.execute(
                 "SELECT id, kind, summary, created_at FROM activity "
-                "ORDER BY created_at DESC LIMIT ?",
+                "ORDER BY created_at DESC, id DESC LIMIT ?",
                 (limit,),
             ).fetchall()
         else:
