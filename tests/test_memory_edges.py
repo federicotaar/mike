@@ -166,3 +166,11 @@ def test_approval_queue_ties_are_fifo(mem):
     mem.db.execute('UPDATE approvals SET created_at=1');mem.db.commit()
     assert [x['id'] for x in mem.pending_approvals()]==[str(a),str(b)]
     assert [x['id'] for x in mem.approvals_history()]==[str(b),str(a)]
+
+def test_activity_ties_and_pruning_keep_newest(mem):
+    for i in range(4):mem.log_activity('test',str(i))
+    mem.db.execute('UPDATE activity SET created_at=1');mem.db.commit()
+    assert [x['summary'] for x in mem.recent_activity()]==['3','2','1','0']
+    assert [x['summary'] for x in mem.recent_activity(kind='test')]==['3','2','1','0']
+    assert mem.prune_activity(2)==2
+    assert [x['summary'] for x in mem.recent_activity()]==['3','2']
