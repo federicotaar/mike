@@ -178,3 +178,9 @@ def test_activity_ties_and_pruning_keep_newest(mem):
 def test_activity_rejects_invalid_limit_types(mem):
     for value in (0,-1,True,1.5,'1'):
         with pytest.raises(ValueError):mem.recent_activity(limit=value)
+
+def test_denied_approval_cannot_be_reapproved(mem):
+    aid=mem.request_approval('test','detail')
+    assert mem.decide_approval(aid,False)
+    assert not mem.decide_approval(aid,True)
+    assert mem.approval_by_id(aid)['status']=='denied' 
