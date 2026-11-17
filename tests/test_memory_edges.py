@@ -174,3 +174,7 @@ def test_activity_ties_and_pruning_keep_newest(mem):
     assert [x['summary'] for x in mem.recent_activity(kind='test')]==['3','2','1','0']
     assert mem.prune_activity(2)==2
     assert [x['summary'] for x in mem.recent_activity()]==['3','2']
+
+def test_activity_rejects_invalid_limit_types(mem):
+    for value in (0,-1,True,1.5,'1'):
+        with pytest.raises(ValueError):mem.recent_activity(limit=value)
