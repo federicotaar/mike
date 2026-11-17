@@ -155,3 +155,8 @@ def test_correct_unknown_memory_rejected(mem):
     with pytest.raises(ValueError):
         mem.correct(9999, "fixed text")
     assert mem.count_memories() == before
+
+def test_export_ties_use_descending_ids(mem):
+    mem.remember('fact','first');mem.remember('fact','second')
+    mem.db.execute('UPDATE memories SET created_at=1');mem.db.commit()
+    assert [x['text'] for x in mem.export_memories()]==['second','first']
