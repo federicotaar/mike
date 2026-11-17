@@ -156,7 +156,7 @@ class Memory:
         user owns, newest first."""
         rows = self.db.execute(
             "SELECT id, kind, text, created_at FROM memories "
-            "WHERE superseded_by IS NULL ORDER BY created_at DESC"
+            "WHERE superseded_by IS NULL ORDER BY created_at DESC, id DESC"
         ).fetchall()
         return [
             {"id": r[0], "kind": r[1], "text": r[2], "createdAt": r[3]}
