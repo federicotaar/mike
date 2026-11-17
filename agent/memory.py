@@ -283,7 +283,7 @@ class Memory:
         else:
             rows = self.db.execute(
                 "SELECT id, kind, summary, created_at FROM activity "
-                "WHERE kind=? ORDER BY created_at DESC LIMIT ?",
+                "WHERE kind=? ORDER BY created_at DESC, id DESC LIMIT ?",
                 (kind, limit),
             ).fetchall()
         return [
