@@ -225,7 +225,7 @@ class Memory:
             raise ValueError("limit must be at least 1")
         rows = self.db.execute(
             "SELECT id, summary, detail, created_at, status FROM approvals "
-            "ORDER BY created_at DESC LIMIT ?",
+            "ORDER BY created_at DESC, id DESC LIMIT ?",
             (limit,),
         ).fetchall()
         return [
