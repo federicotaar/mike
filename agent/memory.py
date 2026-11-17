@@ -299,7 +299,7 @@ class Memory:
             raise ValueError("keep must not be negative")
         cur = self.db.execute(
             "DELETE FROM activity WHERE id NOT IN "
-            "(SELECT id FROM activity ORDER BY created_at DESC LIMIT ?)",
+            "(SELECT id FROM activity ORDER BY created_at DESC, id DESC LIMIT ?)",
             (keep,),
         )
         self.db.commit()
