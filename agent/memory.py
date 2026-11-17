@@ -272,6 +272,8 @@ class Memory:
 
     @synchronized
     def recent_activity(self, limit: int = 100, kind: str | None = None) -> list[dict]:
+        if type(limit) is not int or limit<1:
+            raise ValueError("limit must be a positive integer")
         if kind is None:
             rows = self.db.execute(
                 "SELECT id, kind, summary, created_at FROM activity "
