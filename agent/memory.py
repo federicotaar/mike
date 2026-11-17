@@ -210,7 +210,7 @@ class Memory:
     def pending_approvals(self) -> list[dict]:
         rows = self.db.execute(
             "SELECT id, summary, detail, created_at FROM approvals "
-            "WHERE status='pending' ORDER BY created_at ASC"
+            "WHERE status='pending' ORDER BY created_at ASC, id ASC"
         ).fetchall()
         return [
             {"id": str(r[0]), "summary": r[1], "detail": r[2],
