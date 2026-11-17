@@ -160,3 +160,9 @@ def test_export_ties_use_descending_ids(mem):
     mem.remember('fact','first');mem.remember('fact','second')
     mem.db.execute('UPDATE memories SET created_at=1');mem.db.commit()
     assert [x['text'] for x in mem.export_memories()]==['second','first']
+
+def test_approval_queue_ties_are_fifo(mem):
+    a=mem.request_approval('first','detail');b=mem.request_approval('second','detail')
+    mem.db.execute('UPDATE approvals SET created_at=1');mem.db.commit()
+    assert [x['id'] for x in mem.pending_approvals()]==[str(a),str(b)]
+    assert [x['id'] for x in mem.approvals_history()]==[str(b),str(a)]
