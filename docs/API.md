@@ -96,3 +96,35 @@ optional `limit` (1-500, default 100) caps how many entries come back.
 ### `POST /stop`, `POST /start`
 
 Pause and resume the agent.
+
+## Backup restore and memory detail
+
+`POST /memories/import` accepts `{"memories": [...]}` where the list uses
+`GET /memories/export` records. At most 1000 records can be restored per request.
+Each must have a supported `kind` and nonblank `text` of at most 4000 characters.
+Optional `createdAt` is a finite, nonnegative Unix timestamp. IDs are ignored.
+Invalid records reject the entire batch (400); nothing is partially restored.
+An oversized list is rejected by request validation (422).
+
+The response is `{"imported": 2, "skipped": 1}`. Records with the same kind and
+exact text as an active memory or an earlier record in the batch are skipped.
+Repeated imports are safe. This restores memories only, never approvals or
+execution permissions. A successful nonempty restore adds one activity entry.
+
+`GET /memories/{id}` returns one active record including `createdAt` and a
+string `id`. Unknown and superseded IDs return 404.
+`GET /memories/counts` returns active totals for `fact`, `preference` and
+`feedback`, including zero-count categories.
+
+## Filtering and paging
+
+`GET /memories/search` accepts `kind` and `limit` (1-500, default 50).
+`GET /approvals` accepts `status` (`pending`, `approved`, `denied`) and `limit`
+(1-500, default 100). Invalid filters and out-of-range limits return 400.
+
+`GET /activity` is newest-insertion-first and supports `before_id`: request
+older entries using the last entry's ID from the preceding page. The cursor
+is exclusive, positive and can be combined with `kind` and `limit`. This avoids
+duplicate entries when new activity arrives between pages. An empty result
+means there are no older matching entries, not that the cursor is invalid.
+All these endpoints use the same bearer-token protection as the rest of the API.
