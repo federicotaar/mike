@@ -269,14 +269,17 @@ class Memory:
         ]
 
     @synchronized
-    def approvals_history(self, limit: int = 100) -> list[dict]:
+    def approvals_history(self, limit: int = 100, status: str | None = None) -> list[dict]:
         """All approvals, newest first, any status - the full record, not just pending."""
         if limit < 1:
             raise ValueError("limit must be at least 1")
+        if status is not None and status not in {"pending", "approved", "denied"}:
+            raise ValueError("unknown approval status")
+        where = " WHERE status=?" if status is not None else ""
+        params = (status, limit) if status is not None else (limit,)
         rows = self.db.execute(
-            "SELECT id, summary, detail, created_at, status FROM approvals "
-            "ORDER BY created_at DESC, id DESC LIMIT ?",
-            (limit,),
+            "SELECT id, summary, detail, created_at, status FROM approvals" + where +
+            " ORDER BY created_at DESC, id DESC LIMIT ?", params,
         ).fetchall()
         return [
             {"id": str(r[0]), "summary": r[1], "detail": r[2],
