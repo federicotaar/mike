@@ -321,21 +321,24 @@ class Memory:
         return cur.lastrowid
 
     @synchronized
-    def recent_activity(self, limit: int = 100, kind: str | None = None) -> list[dict]:
+    def recent_activity(self, limit: int = 100, kind: str | None = None, before_id: int | None = None) -> list[dict]:
         if type(limit) is not int or limit<1:
             raise ValueError("limit must be a positive integer")
-        if kind is None:
-            rows = self.db.execute(
-                "SELECT id, kind, summary, created_at FROM activity "
-                "ORDER BY created_at DESC, id DESC LIMIT ?",
-                (limit,),
-            ).fetchall()
-        else:
-            rows = self.db.execute(
-                "SELECT id, kind, summary, created_at FROM activity "
-                "WHERE kind=? ORDER BY created_at DESC, id DESC LIMIT ?",
-                (kind, limit),
-            ).fetchall()
+        if before_id is not None and (type(before_id) is not int or before_id < 1):
+            raise ValueError("before_id must be a positive integer")
+        clauses, params = [], []
+        if kind is not None:
+            clauses.append("kind=?")
+            params.append(kind)
+        if before_id is not None:
+            clauses.append("id<?")
+            params.append(before_id)
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
+        params.append(limit)
+        rows = self.db.execute(
+            "SELECT id, kind, summary, created_at FROM activity" + where +
+            " ORDER BY id DESC LIMIT ?", params,
+        ).fetchall()
         return [
             {"id": str(r[0]), "kind": r[1], "summary": r[2], "time": r[3]}
             for r in rows
