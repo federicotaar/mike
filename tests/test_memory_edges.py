@@ -231,3 +231,32 @@ def test_memory_category_counts_exclude_superseded_and_deleted(tmp_path):
     assert m.memory_counts() == {"fact": 1, "feedback": 0, "preference": 1}
     m.forget(new)
     assert m.memory_counts()["fact"] == 0
+
+
+def test_activity_cursor_is_gap_free_across_new_insertions(tmp_path):
+    import pytest
+    from agent.memory import Memory
+    m = Memory(str(tmp_path / "pages.db"))
+    ids = [m.log_activity("chat" if i % 2 else "start", str(i)) for i in range(8)]
+    first = m.recent_activity(limit=3)
+    m.log_activity("chat", "arrived during paging")
+    rest = m.recent_activity(limit=100, before_id=int(first[-1]["id"]))
+    assert [int(x["id"]) for x in first + rest] == list(reversed(ids))
+    chats = m.recent_activity(kind="chat", before_id=ids[-1])
+    assert [x["summary"] for x in chats] == ["5", "3", "1"]
+    for cursor in (0, -1, True, 1.5, "2"):
+        with pytest.raises(ValueError):
+            m.recent_activity(before_id=cursor)
+
+
+def test_approval_history_status_filter(tmp_path):
+    import pytest
+    from agent.memory import Memory
+    m = Memory(str(tmp_path / "filter.db"))
+    ids = [m.request_approval(str(i), "detail") for i in range(3)]
+    m.decide_approval(ids[0], True)
+    m.decide_approval(ids[1], False)
+    for state, aid in zip(("approved", "denied", "pending"), ids):
+        assert [x["id"] for x in m.approvals_history(status=state)] == [str(aid)]
+    with pytest.raises(ValueError):
+        m.approvals_history(status="executed")
