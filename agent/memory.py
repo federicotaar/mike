@@ -11,6 +11,7 @@ from pathlib import Path
 import time
 import datetime
 import threading
+import math
 from functools import wraps
 
 SCHEMA = """
@@ -193,6 +194,46 @@ class Memory:
             new_id = cur.lastrowid
             self.db.execute("UPDATE memories SET superseded_by=? WHERE id=?", (new_id, old_id))
         return new_id
+
+    @synchronized
+    def import_memories(self, records: list[dict]) -> dict:
+        """Restore an exported backup atomically without duplicating active facts.
+
+        IDs in backups are deliberately ignored. Creation times are preserved;
+        absent times use the import time. Validation precedes every database write.
+        No approval, activity or execution state can be imported through this path.
+        """
+        if not isinstance(records, list) or len(records) > 1000:
+            raise ValueError("backup must be a list of at most 1000 memories")
+        now = time.time()
+        validated = []
+        for record in records:
+            if not isinstance(record, dict):
+                raise ValueError("every memory must be an object")
+            kind, text = record.get("kind"), record.get("text")
+            if not isinstance(kind, str) or kind not in MEMORY_KINDS:
+                raise ValueError("unknown memory kind in backup")
+            if not isinstance(text, str) or not text.strip() or len(text) > 4000:
+                raise ValueError("memory text must contain 1 to 4000 characters")
+            created = record.get("createdAt", now)
+            if type(created) not in (float, int) or not 0 <= created <= 253402300799 or not math.isfinite(created):
+                raise ValueError("invalid memory creation time")
+            validated.append((kind, text, created))
+        existing = set(self.db.execute(
+            "SELECT kind, text FROM memories WHERE superseded_by IS NULL"
+        ).fetchall())
+        imported = 0
+        with self.db:
+            for kind, text, created in validated:
+                if (kind, text) in existing:
+                    continue
+                self.db.execute(
+                    "INSERT INTO memories(kind, text, created_at) VALUES (?, ?, ?)",
+                    (kind, text, created),
+                )
+                existing.add((kind, text))
+                imported += 1
+        return {"imported": imported, "skipped": len(records) - imported}
 
     # ---- approval queue ----------------------------------------------
     @synchronized
