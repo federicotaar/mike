@@ -235,3 +235,44 @@ def test_activity_limit_is_validated_and_applied(client):
     api.memory.log_activity("chat", "one")
     api.memory.log_activity("chat", "two")
     assert len(client.get("/activity", params={"limit": 1}).json()) == 1
+
+def test_memory_backup_restore_api_and_auth(client, monkeypatch):
+    import dataclasses
+    payload = {"memories": [{"kind": "fact", "text": "restored", "createdAt": 123}]}
+    assert client.post("/memories/import", json=payload).json() == {"imported": 1, "skipped": 0}
+    assert client.post("/memories/import", json=payload).json() == {"imported": 0, "skipped": 1}
+    assert len([x for x in client.get("/activity").json() if "imported" in x["summary"]]) == 1
+    assert client.post("/memories/import", json={"memories": [payload["memories"][0], {}]}).status_code == 400
+    assert api.memory.count_memories() == 1
+    monkeypatch.setattr(api, "settings", dataclasses.replace(api.settings, api_token="test-secret"))
+    assert client.post("/memories/import", json=payload).status_code == 401
+    assert client.post("/memories/import", json=payload, headers={"Authorization": "Bearer test-secret"}).status_code == 200
+
+
+def test_memory_detail_counts_and_filtered_search(client):
+    old = api.memory.remember("fact", "shared old")
+    new = api.memory.correct(old, "shared new")
+    api.memory.remember("preference", "shared preference")
+    assert client.get(f"/memories/{old}").status_code == 404
+    assert client.get(f"/memories/{new}").json()["id"] == str(new)
+    assert client.get("/memories/99999").status_code == 404
+    assert client.get("/memories/counts").json() == {"fact": 1, "preference": 1, "feedback": 0}
+    result = client.get("/memories/search", params={"q": "shared", "kind": "fact", "limit": 1}).json()
+    assert [x["text"] for x in result] == ["shared new"]
+    for params in ({"q": "shared", "kind": "wrong"}, {"q": "shared", "limit": 501}):
+        assert client.get("/memories/search", params=params).status_code == 400
+
+
+def test_api_activity_cursor_and_approval_filters(client):
+    for i in range(5):
+        api.memory.log_activity("chat", str(i))
+    page = client.get("/activity", params={"limit": 2}).json()
+    older = client.get("/activity", params={"before_id": page[-1]["id"]}).json()
+    assert [x["summary"] for x in page + older] == ["4", "3", "2", "1", "0"]
+    assert client.get("/activity", params={"before_id": 0}).status_code == 400
+    aid = api.memory.request_approval("test", "detail")
+    api.memory.decide_approval(aid, False)
+    assert len(client.get("/approvals", params={"status": "denied", "limit": 1}).json()) == 1
+    assert client.get("/approvals", params={"status": "pending"}).json() == []
+    assert client.get("/approvals", params={"status": "wrong"}).status_code == 400
+    assert client.get("/approvals", params={"limit": 0}).status_code == 400
