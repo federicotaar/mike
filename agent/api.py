@@ -158,9 +158,14 @@ async def pending_approvals():
 
 
 @app.get("/approvals")
-async def approvals_history():
+async def approvals_history(limit: int = 100, status: str = ""):
     """Full approval record (pending, approved, denied) for the Activity tab."""
-    return mem().approvals_history()
+    if not 1 <= limit <= 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+    try:
+        return mem().approvals_history(limit=limit, status=status.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/approvals/{approval_id}")
@@ -195,6 +200,22 @@ async def list_memories(limit: int = 50, kind: str = ""):
     return [{"id": str(i), "kind": k, "text": t} for i, k, t in rows]
 
 
+class MemoryBackup(BaseModel):
+    memories: list[dict] = Field(max_length=1000)
+
+
+@app.post("/memories/import")
+async def import_memories(body: MemoryBackup):
+    """Restore an export; invalid records reject the whole request."""
+    try:
+        result = mem().import_memories(body.memories)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if result["imported"]:
+        mem().log_activity("memory", f"imported {result['imported']} memories")
+    return result
+
+
 class MemoryCorrection(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
 
@@ -218,20 +239,37 @@ async def correct_memory(memory_id: int, body: MemoryCorrection):
 
 
 @app.get("/memories/search")
-async def search_memories(q: str = ""):
+async def search_memories(q: str = "", kind: str = "", limit: int = 50):
     """Find active memories containing the query text, case-insensitive."""
     if not q.strip():
         raise HTTPException(status_code=400, detail="q must not be blank")
-    return [
-        {"id": str(i), "kind": k, "text": t}
-        for i, k, t in mem().search_memories(q)
-    ]
+    if not 1 <= limit <= 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+    try:
+        rows = mem().search_memories(q, limit=limit, kind=kind.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return [{"id": str(i), "kind": k, "text": t} for i, k, t in rows]
 
 
 @app.get("/memories/export")
 async def export_memories():
     """Portable backup of every active memory, including creation times."""
     return mem().export_memories()
+
+
+@app.get("/memories/counts")
+async def memory_counts():
+    """Counts use active rows only, matching the memory list and search."""
+    return mem().memory_counts()
+
+
+@app.get("/memories/{memory_id}")
+async def get_memory(memory_id: int):
+    row = mem().memory_by_id(memory_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="no active memory with that id")
+    return {**row, "id": str(row["id"])}
 
 
 @app.delete("/memories/{memory_id}")
@@ -244,11 +282,14 @@ async def delete_memory(memory_id: int):
 
 
 @app.get("/activity")
-async def activity(kind: str = "", limit: int = 100):
+async def activity(kind: str = "", limit: int = 100, before_id: int | None = None):
     """Newest activity first; ?kind=chat filters to one kind."""
     if limit < 1 or limit > 500:
         raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
-    return mem().recent_activity(limit=limit, kind=kind.strip() or None)
+    try:
+        return mem().recent_activity(limit=limit, kind=kind.strip() or None, before_id=before_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.post("/stop")
