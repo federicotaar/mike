@@ -235,6 +235,15 @@ class Memory:
                 imported += 1
         return {"imported": imported, "skipped": len(records) - imported}
 
+    @synchronized
+    def memory_counts(self) -> dict[str, int]:
+        """Active memory totals by kind, including zero-count categories."""
+        counts = dict.fromkeys(sorted(MEMORY_KINDS), 0)
+        counts.update(self.db.execute(
+            "SELECT kind, COUNT(*) FROM memories WHERE superseded_by IS NULL GROUP BY kind"
+        ).fetchall())
+        return counts
+
     # ---- approval queue ----------------------------------------------
     @synchronized
     def request_approval(self, summary: str, detail: str) -> int:
