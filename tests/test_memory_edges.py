@@ -184,3 +184,50 @@ def test_denied_approval_cannot_be_reapproved(mem):
     assert mem.decide_approval(aid,False)
     assert not mem.decide_approval(aid,True)
     assert mem.approval_by_id(aid)['status']=='denied' 
+
+def test_backup_restore_is_atomic_deduplicated_and_portable(tmp_path):
+    from agent.memory import Memory
+    m = Memory(str(tmp_path / "restore.db"))
+    original = m.remember("fact", "A")
+    assert m.import_memories([{"id": 999, "kind": "fact", "text": "A"},
+                             {"kind": "fact", "text": "B", "createdAt": 42},
+                             {"kind": "fact", "text": "B"}]) == {"imported": 1, "skipped": 2}
+    restored = next(x for x in m.export_memories() if x["text"] == "B")
+    assert restored["createdAt"] == 42
+    assert restored["id"] != 999
+    m.correct(original, "corrected A")
+    backup = m.export_memories()
+    fresh = Memory(str(tmp_path / "fresh.db"))
+    assert fresh.import_memories(backup)["imported"] == 2
+    assert sorted((x["kind"], x["text"], x["createdAt"]) for x in fresh.export_memories()) == sorted((x["kind"], x["text"], x["createdAt"]) for x in backup)
+    assert fresh.import_memories(backup) == {"imported": 0, "skipped": 2}
+
+
+def test_backup_restore_rejects_invalid_batch_without_partial_writes(tmp_path):
+    import pytest
+    from agent.memory import Memory
+    m = Memory(str(tmp_path / "atomic.db"))
+    valid = {"kind": "fact", "text": "valid"}
+    invalid = [None, [], {"kind": "unknown", "text": "x"}, {"kind": [], "text": "x"},
+               {"kind": "fact", "text": " "}, {"kind": "fact", "text": 5},
+               {**valid, "createdAt": float("nan")}, {**valid, "createdAt": True},
+               {**valid, "createdAt": -1}, {**valid, "text": "x" * 4001}]
+    for bad in invalid:
+        with pytest.raises(ValueError):
+            m.import_memories([valid, bad])
+        assert m.count_memories() == 0
+    with pytest.raises(ValueError):
+        m.import_memories([valid] * 1001)
+    assert m.import_memories([]) == {"imported": 0, "skipped": 0}
+
+
+def test_memory_category_counts_exclude_superseded_and_deleted(tmp_path):
+    from agent.memory import Memory
+    m = Memory(str(tmp_path / "counts.db"))
+    assert m.memory_counts() == {"fact": 0, "feedback": 0, "preference": 0}
+    old = m.remember("fact", "old")
+    new = m.correct(old, "new")
+    m.remember("preference", "short")
+    assert m.memory_counts() == {"fact": 1, "feedback": 0, "preference": 1}
+    m.forget(new)
+    assert m.memory_counts()["fact"] == 0
