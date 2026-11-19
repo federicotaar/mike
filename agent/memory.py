@@ -196,6 +196,25 @@ class Memory:
         return new_id
 
     @synchronized
+    def find_duplicate_memories(self) -> list[list[dict]]:
+        """Groups of active memories whose normalized text is identical
+        (case and surrounding/inner whitespace collapsed). Duplicates creep
+        in when the same fact is re-learned; this lists them so they can be
+        reviewed and forgotten, never auto-deleted."""
+        rows = self.db.execute(
+            "SELECT id, kind, text, created_at FROM memories WHERE superseded_by IS NULL ORDER BY created_at, id"
+        ).fetchall()
+        groups: dict[str, list[dict]] = {}
+        for r in rows:
+            norm = " ".join(str(r[2]).split()).lower()
+            if not norm:
+                continue
+            groups.setdefault(norm, []).append(
+                {"id": r[0], "kind": r[1], "text": r[2], "created_at": r[3]}
+            )
+        return [g for g in groups.values() if len(g) > 1]
+
+    @synchronized
     def import_memories(self, records: list[dict]) -> dict:
         """Restore an exported backup atomically without duplicating active facts.
 
