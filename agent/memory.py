@@ -348,6 +348,15 @@ class Memory:
         ]
 
     @synchronized
+    def activity_counts(self) -> dict[str, int]:
+        """How many activity rows exist per kind, most frequent first.
+        Feeds status/debug views without shipping the whole log."""
+        rows = self.db.execute(
+            "SELECT kind, COUNT(*) FROM activity GROUP BY kind ORDER BY COUNT(*) DESC, kind"
+        ).fetchall()
+        return {r[0]: r[1] for r in rows}
+
+    @synchronized
     def prune_activity(self, keep: int = 1000) -> int:
         """Bound the activity log: drop all but the newest `keep` rows.
         Returns how many rows were removed."""
