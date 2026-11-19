@@ -412,6 +412,26 @@ class Memory:
         return cur.rowcount
 
     @synchronized
+    def export_activity(self, limit: int | None = None) -> list[dict]:
+        """Export the activity log (newest first) for backups, mirroring
+        export_memories(). With limit=None the whole log is exported."""
+        if limit is not None and (type(limit) is not int or limit < 1):
+            raise ValueError("limit must be a positive integer or None")
+        if limit is None:
+            rows = self.db.execute(
+                "SELECT id, kind, summary, created_at FROM activity ORDER BY id DESC"
+            ).fetchall()
+        else:
+            rows = self.db.execute(
+                "SELECT id, kind, summary, created_at FROM activity ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [
+            {"id": r[0], "kind": r[1], "summary": r[2], "created_at": r[3]}
+            for r in rows
+        ]
+
+    @synchronized
     def set_paused(self, paused: bool) -> None:
         self.db.execute(
             "INSERT INTO kv (key, value) VALUES ('paused', ?) "
