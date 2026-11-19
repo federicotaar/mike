@@ -1,6 +1,26 @@
 from agent.memory import Memory
 
 
+def test_prune_activity_older_than_removes_only_old_rows():
+    import time
+    m = Memory(":memory:")
+    old_id = m.log_activity("note", "ancient")
+    new_id = m.log_activity("note", "fresh")
+    m.db.execute("UPDATE activity SET created_at=? WHERE id=?", (time.time() - 10 * 86400, old_id))
+    m.db.commit()
+    assert m.prune_activity_older_than(7) == 1
+    kinds = [r["id"] for r in m.recent_activity()]
+    assert str(new_id) in kinds and str(old_id) not in kinds
+    # nothing old left: second run removes zero
+    assert m.prune_activity_older_than(7) == 0
+    for bad in (-1, True, "7"):
+        try:
+            m.prune_activity_older_than(bad)
+            raise AssertionError(f"accepted {bad!r}")
+        except ValueError:
+            pass
+
+
 def test_find_duplicate_memories_groups_normalized_text():
     m = Memory(":memory:")
     a = m.remember("fact", "Likes  coffee")
