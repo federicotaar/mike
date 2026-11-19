@@ -1,6 +1,18 @@
 from agent.memory import Memory
 
 
+def test_count_activity_total_and_per_kind():
+    m = Memory(":memory:")
+    assert m.count_activity() == 0
+    for i in range(5):
+        m.log_activity("note", f"n{i}")
+    m.log_activity("sync", "s0")
+    assert m.count_activity() == 6
+    assert m.count_activity("note") == 5
+    assert m.count_activity("sync") == 1
+    assert m.count_activity("missing-kind") == 0
+
+
 def test_activity_counts_group_per_kind():
     m = Memory(":memory:")
     assert m.activity_counts() == {}
