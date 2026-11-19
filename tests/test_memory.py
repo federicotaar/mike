@@ -1,6 +1,20 @@
 from agent.memory import Memory
 
 
+def test_find_duplicate_memories_groups_normalized_text():
+    m = Memory(":memory:")
+    a = m.remember("fact", "Likes  coffee")
+    m.remember("fact", "likes coffee")
+    m.remember("preference", "different thing entirely")
+    groups = m.find_duplicate_memories()
+    assert len(groups) == 1
+    assert len(groups[0]) == 2
+    assert groups[0][0]["id"] == a
+    # a superseded memory no longer counts as a duplicate
+    m.correct(a, "likes tea")
+    assert m.find_duplicate_memories() == []
+
+
 def test_count_activity_total_and_per_kind():
     m = Memory(":memory:")
     assert m.count_activity() == 0
