@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-19
+
+- Memory: per-kind activity counts (`activity_counts`) and a total count (`count_activity`) so paged views can show progress.
+- Memory: duplicate-memory detection (`find_duplicate_memories`) for cleanup review; it lists, never deletes.
+- Memory: age-based activity pruning (`prune_activity_older_than`) alongside the existing count-based prune.
+- Memory: activity log export (`export_activity`) mirroring `export_memories` for backups.
+
 All notable changes to Mike are documented here. Versions follow the
 `VERSION` file at the repo root; iPhone releases ship as `Mike-iPhone.ipa`
 on the [Releases page](https://github.com/federicotaar/mike/releases).
