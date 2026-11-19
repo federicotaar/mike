@@ -400,6 +400,18 @@ class Memory:
 
     # ---- paused flag ----------------------------------------------------
     @synchronized
+    def prune_activity_older_than(self, days: float) -> int:
+        """Drop activity rows older than `days` days. prune_activity() bounds
+        the log by row count; this bounds it by age, which is what a weekly
+        cleanup job actually wants. Returns how many rows were removed."""
+        if not isinstance(days, (int, float)) or isinstance(days, bool) or days < 0:
+            raise ValueError("days must be a non-negative number")
+        cutoff = time.time() - days * 86400
+        cur = self.db.execute("DELETE FROM activity WHERE created_at < ?", (cutoff,))
+        self.db.commit()
+        return cur.rowcount
+
+    @synchronized
     def set_paused(self, paused: bool) -> None:
         self.db.execute(
             "INSERT INTO kv (key, value) VALUES ('paused', ?) "
