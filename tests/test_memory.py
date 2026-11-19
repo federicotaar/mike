@@ -1,6 +1,22 @@
 from agent.memory import Memory
 
 
+def test_export_activity_newest_first_with_optional_limit():
+    m = Memory(":memory:")
+    for i in range(3):
+        m.log_activity("note", f"entry {i}")
+    all_rows = m.export_activity()
+    assert [r["summary"] for r in all_rows] == ["entry 2", "entry 1", "entry 0"]
+    assert all(set(r) == {"id", "kind", "summary", "created_at"} for r in all_rows)
+    assert len(m.export_activity(limit=2)) == 2
+    for bad in (0, -1, 1.5, "2"):
+        try:
+            m.export_activity(limit=bad)
+            raise AssertionError(f"accepted {bad!r}")
+        except ValueError:
+            pass
+
+
 def test_prune_activity_older_than_removes_only_old_rows():
     import time
     m = Memory(":memory:")
