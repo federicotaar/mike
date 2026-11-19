@@ -357,6 +357,15 @@ class Memory:
         return {r[0]: r[1] for r in rows}
 
     @synchronized
+    def count_activity(self, kind: str | None = None) -> int:
+        """Total activity rows (optionally one kind): recent_activity() pages
+        through the log with before_id, callers need the total to show
+        progress and to know when another page exists."""
+        if kind is None:
+            return self.db.execute("SELECT COUNT(*) FROM activity").fetchone()[0]
+        return self.db.execute("SELECT COUNT(*) FROM activity WHERE kind=?", (kind,)).fetchone()[0]
+
+    @synchronized
     def prune_activity(self, keep: int = 1000) -> int:
         """Bound the activity log: drop all but the newest `keep` rows.
         Returns how many rows were removed."""
