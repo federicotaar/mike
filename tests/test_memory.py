@@ -1,6 +1,15 @@
 from agent.memory import Memory
 
 
+def test_activity_counts_group_per_kind():
+    m = Memory(":memory:")
+    assert m.activity_counts() == {}
+    m.log_activity("note", "one")
+    m.log_activity("note", "two")
+    m.log_activity("sync", "three")
+    assert m.activity_counts() == {"note": 2, "sync": 1}
+
+
 def test_remember_and_recall(tmp_path):
     m = Memory(str(tmp_path / "t.db"))
     m.remember("preference", "likes short answers")
