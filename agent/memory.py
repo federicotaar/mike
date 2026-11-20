@@ -482,3 +482,20 @@ class Memory:
             "INSERT INTO kv (key, value) VALUES (?, ?) "
             "ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value))
         self.db.commit()
+
+    @synchronized
+    def search_activity(self, query: str, limit: int = 100, kind: str | None = None) -> list[dict]:
+        """Search literal activity text without treating % and _ as wildcards."""
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError("query must not be blank")
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("limit must be between 1 and 500")
+        where, params = "instr(lower(summary), lower(?)) > 0", [query]
+        if kind is not None:
+            where += " AND kind=?"
+            params.append(kind)
+        rows = self.db.execute(
+            "SELECT id, kind, summary, created_at FROM activity WHERE " + where +
+            " ORDER BY id DESC LIMIT ?", (*params, limit),
+        ).fetchall()
+        return [{"id": str(r[0]), "kind": r[1], "summary": r[2], "time": r[3]} for r in rows]
