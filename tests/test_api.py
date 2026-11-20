@@ -286,3 +286,11 @@ def test_search_activity_endpoint(client):
     assert client.get("/activity/search", params={"q": "remember", "limit": 1}).json()[0]["kind"] == "stop"
     assert client.get("/activity/search").status_code == 400
     assert client.get("/activity/search", params={"q": "x", "limit": 501}).status_code == 400
+
+
+def test_activity_counts_endpoint(client):
+    assert client.get("/activity/counts").json() == {}
+    api.memory.log_activity("chat", "first")
+    api.memory.log_activity("chat", "second")
+    api.memory.log_activity("stop", "paused")
+    assert client.get("/activity/counts").json() == {"chat": 2, "stop": 1}
