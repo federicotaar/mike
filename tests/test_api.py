@@ -350,3 +350,13 @@ def test_activity_detail_endpoint_and_static_routes(client):
     assert client.get("/activity/counts").status_code==200
     assert client.get("/activity/export").status_code==200
     assert client.get("/activity/search?q=open").status_code==200
+
+
+def test_approval_page_endpoint(client):
+    for i in range(3):api.memory.request_approval(str(i),"detail")
+    first=client.get("/approvals/page?limit=2").json()
+    assert len(first["items"])==2
+    last=client.get("/approvals/page",params={"before_id":first["nextBeforeId"]}).json()
+    assert len(last["items"])==1 and last["nextBeforeId"] is None
+    assert client.get("/approvals/page?status=bad").status_code==400
+    assert client.get("/approvals/page?limit=501").status_code==400
