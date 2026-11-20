@@ -554,3 +554,8 @@ class Memory:
         rows=rows[:limit]
         return {"items": [{"id":str(r[0]),"kind":r[1],"text":r[2],"createdAt":r[3]} for r in rows],
                 "nextBeforeId": str(rows[-1][0]) if more else None}
+
+    @synchronized
+    def activity_by_id(self, activity_id: int) -> dict | None:
+        row=self.db.execute("SELECT id,kind,summary,created_at FROM activity WHERE id=?",(activity_id,)).fetchone()
+        return {"id":str(row[0]),"kind":row[1],"summary":row[2],"time":row[3]} if row else None
