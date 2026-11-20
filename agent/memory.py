@@ -521,3 +521,12 @@ class Memory:
         """, (memory_id,)).fetchall()
         return [{"id": r[0], "kind": r[1], "text": r[2], "createdAt": r[3],
                  "supersededBy": r[4]} for r in rows]
+
+    @synchronized
+    def approval_counts(self) -> dict[str, int]:
+        """Counts by decision state, including states with no rows."""
+        counts = dict.fromkeys(("pending", "approved", "denied"), 0)
+        counts.update(self.db.execute(
+            "SELECT status, COUNT(*) FROM approvals GROUP BY status"
+        ).fetchall())
+        return counts
