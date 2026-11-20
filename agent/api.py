@@ -313,3 +313,9 @@ async def search_activity(q: str = "", kind: str = "", limit: int = 100):
         return mem().search_activity(q, limit=limit, kind=kind.strip() or None)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/activity/counts")
+async def activity_counts():
+    """Per-kind totals across the full log, not just its first page."""
+    return mem().activity_counts()
