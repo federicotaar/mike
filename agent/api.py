@@ -327,3 +327,9 @@ async def export_activity(limit: int | None = None):
     if limit is not None and not 1 <= limit <= 10000:
         raise HTTPException(status_code=400, detail="limit must be between 1 and 10000")
     return mem().export_activity(limit=limit)
+
+
+@app.get("/memories/duplicates/review")
+async def duplicate_memories():
+    """Read-only duplicate groups; deleting or merging still requires a user choice."""
+    return mem().find_duplicate_memories()
