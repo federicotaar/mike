@@ -341,3 +341,12 @@ def test_memory_page_endpoint(client):
     assert len(last["items"])==1 and last["nextBeforeId"] is None
     assert client.get("/memories/page?kind=invalid").status_code==400
     assert client.get("/memories/page?before_id=0").status_code==400
+
+
+def test_activity_detail_endpoint_and_static_routes(client):
+    aid=api.memory.log_activity("chat","open me")
+    assert client.get(f"/activity/{aid}").json()["summary"]=="open me"
+    assert client.get("/activity/999999").status_code==404
+    assert client.get("/activity/counts").status_code==200
+    assert client.get("/activity/export").status_code==200
+    assert client.get("/activity/search?q=open").status_code==200
