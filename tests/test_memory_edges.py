@@ -301,3 +301,15 @@ def test_memory_history_cycle_terminates():
     m.db.execute("UPDATE memories SET superseded_by=? WHERE id=?", (first, last))
     m.db.commit()
     assert len(m.memory_history(first)) == 2
+
+
+def test_approval_state_totals():
+    from agent.memory import Memory
+    m = Memory(":memory:")
+    assert m.approval_counts() == {"pending": 0, "approved": 0, "denied": 0}
+    yes = m.request_approval("one", "details")
+    no = m.request_approval("two", "details")
+    m.request_approval("three", "details")
+    m.decide_approval(yes, True)
+    m.decide_approval(no, False)
+    assert m.approval_counts() == {"pending": 1, "approved": 1, "denied": 1}
