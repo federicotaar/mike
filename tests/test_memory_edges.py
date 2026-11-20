@@ -352,3 +352,19 @@ def test_activity_detail_lookup():
     assert m.activity_by_id(aid)["summary"]=="a particular event"
     assert m.activity_by_id(aid)["id"]==str(aid)
     assert m.activity_by_id(aid+1) is None
+
+
+def test_approval_cursor_history():
+    import pytest
+    from agent.memory import Memory
+    m=Memory(":memory:")
+    ids=[m.request_approval(f"request {i}","detail") for i in range(4)]
+    m.decide_approval(ids[0],False)
+    first=m.approval_page(limit=2,status="pending")
+    assert len(first["items"])==2 and first["nextBeforeId"]
+    second=m.approval_page(limit=2,status="pending",before_id=int(first["nextBeforeId"]))
+    assert len(second["items"])==1 and second["nextBeforeId"] is None
+    assert second["items"][0]["id"]==str(ids[1])
+    assert m.approval_page(status="approved")["items"]==[]
+    for kwargs in ({"limit":0},{"before_id":True},{"status":"unknown"}):
+        with pytest.raises(ValueError):m.approval_page(**kwargs)
