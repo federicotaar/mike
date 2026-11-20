@@ -294,3 +294,15 @@ def test_activity_counts_endpoint(client):
     api.memory.log_activity("chat", "second")
     api.memory.log_activity("stop", "paused")
     assert client.get("/activity/counts").json() == {"chat": 2, "stop": 1}
+
+
+def test_activity_export_endpoint(client):
+    api.memory.log_activity("chat", "one")
+    api.memory.log_activity("chat", "two")
+    exported = client.get("/activity/export").json()
+    assert len(exported) == 2 and exported[0]["summary"] == "two"
+    assert set(exported[0]) == {"id", "kind", "summary", "created_at"}
+    assert len(client.get("/activity/export?limit=1").json()) == 1
+    assert client.get("/activity/export?limit=0").status_code == 400
+    assert client.get("/activity/export?limit=10001").status_code == 400
+    assert api.memory.count_activity() == 2
