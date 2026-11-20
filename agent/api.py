@@ -356,3 +356,11 @@ async def memory_history(memory_id: int):
     return [{**row, "id": str(row["id"]),
              "supersededBy": str(row["supersededBy"]) if row["supersededBy"] is not None else None}
             for row in rows]
+
+
+@app.get("/activity/{activity_id}")
+async def activity_detail(activity_id: int):
+    row=mem().activity_by_id(activity_id)
+    if row is None:
+        raise HTTPException(status_code=404,detail="no activity with that id")
+    return row
