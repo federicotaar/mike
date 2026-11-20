@@ -168,6 +168,11 @@ async def approvals_history(limit: int = 100, status: str = ""):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@app.get("/approvals/counts")
+async def approval_counts():
+    return mem().approval_counts()
+
+
 @app.get("/approvals/{approval_id}")
 async def get_approval(approval_id: int):
     """One approval in any status, for the detail view. Real 404 when unknown."""
