@@ -331,3 +331,13 @@ def test_approval_counts_endpoint(client):
     assert client.get("/approvals/counts").json() == {"pending": 1, "approved": 0, "denied": 0}
     client.post(f"/approvals/{aid}", json={"approve": True})
     assert client.get("/approvals/counts").json()["approved"] == 1
+
+
+def test_memory_page_endpoint(client):
+    for i in range(3):api.memory.remember("fact",f"page {i}")
+    first=client.get("/memories/page?limit=2").json()
+    assert len(first["items"])==2 and first["nextBeforeId"]
+    last=client.get("/memories/page",params={"before_id":first["nextBeforeId"],"limit":2}).json()
+    assert len(last["items"])==1 and last["nextBeforeId"] is None
+    assert client.get("/memories/page?kind=invalid").status_code==400
+    assert client.get("/memories/page?before_id=0").status_code==400
