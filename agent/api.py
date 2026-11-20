@@ -319,3 +319,11 @@ async def search_activity(q: str = "", kind: str = "", limit: int = 100):
 async def activity_counts():
     """Per-kind totals across the full log, not just its first page."""
     return mem().activity_counts()
+
+
+@app.get("/activity/export")
+async def export_activity(limit: int | None = None):
+    """Portable activity backup; no pruning or other writes are performed."""
+    if limit is not None and not 1 <= limit <= 10000:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 10000")
+    return mem().export_activity(limit=limit)
