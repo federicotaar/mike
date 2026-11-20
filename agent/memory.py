@@ -530,3 +530,27 @@ class Memory:
             "SELECT status, COUNT(*) FROM approvals GROUP BY status"
         ).fetchall())
         return counts
+
+    @synchronized
+    def memory_page(self, limit: int = 50, before_id: int | None = None,
+                    kind: str | None = None) -> dict:
+        """Cursor-paged active memories, ordered by insertion ID rather than backup date."""
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("limit must be between 1 and 500")
+        if before_id is not None and (type(before_id) is not int or before_id < 1):
+            raise ValueError("before_id must be a positive integer")
+        if kind is not None and kind not in MEMORY_KINDS:
+            raise ValueError("unknown memory kind")
+        clauses, params = ["superseded_by IS NULL"], []
+        if before_id is not None:
+            clauses.append("id<?"); params.append(before_id)
+        if kind is not None:
+            clauses.append("kind=?"); params.append(kind)
+        rows = self.db.execute(
+            "SELECT id, kind, text, created_at FROM memories WHERE " + " AND ".join(clauses) +
+            " ORDER BY id DESC LIMIT ?", (*params, limit+1),
+        ).fetchall()
+        more=len(rows)>limit
+        rows=rows[:limit]
+        return {"items": [{"id":str(r[0]),"kind":r[1],"text":r[2],"createdAt":r[3]} for r in rows],
+                "nextBeforeId": str(rows[-1][0]) if more else None}
