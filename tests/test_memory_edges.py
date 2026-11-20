@@ -275,3 +275,29 @@ def test_activity_search_literal_and_kind():
     for q, limit in [(" ", 1), ("x", 0), ("x", True), ("x", 501)]:
         with pytest.raises(ValueError):
             m.search_activity(q, limit=limit)
+
+
+def test_memory_history_from_any_member():
+    from agent.memory import Memory
+    m = Memory(":memory:")
+    first = m.remember("fact", "version one")
+    second = m.correct(first, "version two")
+    last = m.correct(second, "version three")
+    m.remember("fact", "unrelated")
+    for mid in (first, second, last):
+        history = m.memory_history(mid)
+        assert [r["id"] for r in history] == [first, second, last]
+        assert history[-1]["supersededBy"] is None
+    assert m.memory_history(987654) == []
+    m.forget(first)
+    assert [r["id"] for r in m.memory_history(last)] == [second, last]
+
+
+def test_memory_history_cycle_terminates():
+    from agent.memory import Memory
+    m = Memory(":memory:")
+    first = m.remember("fact", "one")
+    last = m.correct(first, "two")
+    m.db.execute("UPDATE memories SET superseded_by=? WHERE id=?", (first, last))
+    m.db.commit()
+    assert len(m.memory_history(first)) == 2
