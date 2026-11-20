@@ -499,3 +499,25 @@ class Memory:
             " ORDER BY id DESC LIMIT ?", (*params, limit),
         ).fetchall()
         return [{"id": str(r[0]), "kind": r[1], "summary": r[2], "time": r[3]} for r in rows]
+
+    @synchronized
+    def memory_history(self, memory_id: int) -> list[dict]:
+        """Available correction chain in chronological order, from any member.
+
+        UNION rather than UNION ALL also terminates on malformed cyclic data.
+        Deleted memories cannot be recovered through this read-only view.
+        """
+        rows = self.db.execute("""
+            WITH RECURSIVE chain(id) AS (
+                SELECT id FROM memories WHERE id=?
+                UNION
+                SELECT m.id FROM memories m JOIN chain c
+                ON m.superseded_by=c.id OR m.id=(
+                    SELECT superseded_by FROM memories WHERE id=c.id
+                )
+            )
+            SELECT id, kind, text, created_at, superseded_by FROM memories
+            WHERE id IN (SELECT id FROM chain) ORDER BY created_at, id
+        """, (memory_id,)).fetchall()
+        return [{"id": r[0], "kind": r[1], "text": r[2], "createdAt": r[3],
+                 "supersededBy": r[4]} for r in rows]
