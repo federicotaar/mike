@@ -306,3 +306,11 @@ def test_activity_export_endpoint(client):
     assert client.get("/activity/export?limit=0").status_code == 400
     assert client.get("/activity/export?limit=10001").status_code == 400
     assert api.memory.count_activity() == 2
+
+
+def test_duplicate_review_endpoint(client):
+    api.memory.remember("fact", "Likes green tea")
+    api.memory.remember("preference", "  LIKES  green TEA ")
+    groups = client.get("/memories/duplicates/review").json()
+    assert len(groups) == 1 and len(groups[0]) == 2
+    assert api.memory.count_memories() == 2
