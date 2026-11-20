@@ -313,3 +313,14 @@ def test_approval_state_totals():
     m.decide_approval(yes, True)
     m.decide_approval(no, False)
     assert m.approval_counts() == {"pending": 1, "approved": 1, "denied": 1}
+
+
+def test_activity_retention_rejects_nonfinite_days():
+    import pytest
+    from agent.memory import Memory
+    m = Memory(":memory:")
+    m.log_activity("chat", "keep")
+    for days in (float("nan"), float("inf"), float("-inf"), True, -1):
+        with pytest.raises(ValueError):
+            m.prune_activity_older_than(days)
+    assert m.count_activity() == 1
