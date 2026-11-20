@@ -269,6 +269,14 @@ async def memory_counts():
     return mem().memory_counts()
 
 
+@app.get("/memories/page")
+async def memory_page(limit: int = 50, before_id: int | None = None, kind: str = ""):
+    try:
+        return mem().memory_page(limit=limit,before_id=before_id,kind=kind.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/memories/{memory_id}")
 async def get_memory(memory_id: int):
     row = mem().memory_by_id(memory_id)
