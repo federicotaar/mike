@@ -333,3 +333,13 @@ async def export_activity(limit: int | None = None):
 async def duplicate_memories():
     """Read-only duplicate groups; deleting or merging still requires a user choice."""
     return mem().find_duplicate_memories()
+
+
+@app.get("/memories/{memory_id}/history")
+async def memory_history(memory_id: int):
+    rows = mem().memory_history(memory_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="no memory with that id")
+    return [{**row, "id": str(row["id"]),
+             "supersededBy": str(row["supersededBy"]) if row["supersededBy"] is not None else None}
+            for row in rows]
