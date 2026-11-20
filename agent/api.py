@@ -173,6 +173,14 @@ async def approval_counts():
     return mem().approval_counts()
 
 
+@app.get("/approvals/page")
+async def approval_page(limit: int = 50, before_id: int | None = None, status: str = ""):
+    try:
+        return mem().approval_page(limit=limit,before_id=before_id,status=status.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/approvals/{approval_id}")
 async def get_approval(approval_id: int):
     """One approval in any status, for the detail view. Real 404 when unknown."""
