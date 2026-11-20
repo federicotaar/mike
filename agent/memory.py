@@ -404,7 +404,7 @@ class Memory:
         """Drop activity rows older than `days` days. prune_activity() bounds
         the log by row count; this bounds it by age, which is what a weekly
         cleanup job actually wants. Returns how many rows were removed."""
-        if not isinstance(days, (int, float)) or isinstance(days, bool) or days < 0:
+        if not isinstance(days, (int, float)) or isinstance(days, bool) or not math.isfinite(days) or days < 0:
             raise ValueError("days must be a non-negative number")
         cutoff = time.time() - days * 86400
         cur = self.db.execute("DELETE FROM activity WHERE created_at < ?", (cutoff,))
