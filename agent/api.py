@@ -304,3 +304,12 @@ async def start():
     mem().set_paused(False)
     mem().log_activity("start", "Mike resumed by user")
     return {"paused": False}
+
+
+@app.get("/activity/search")
+async def search_activity(q: str = "", kind: str = "", limit: int = 100):
+    """Find past activity without downloading the entire log."""
+    try:
+        return mem().search_activity(q, limit=limit, kind=kind.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
