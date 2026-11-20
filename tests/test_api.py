@@ -314,3 +314,13 @@ def test_duplicate_review_endpoint(client):
     groups = client.get("/memories/duplicates/review").json()
     assert len(groups) == 1 and len(groups[0]) == 2
     assert api.memory.count_memories() == 2
+
+
+def test_memory_history_endpoint(client):
+    mid = api.memory.remember("fact", "old fact")
+    last = api.memory.correct(mid, "new fact")
+    r = client.get(f"/memories/{last}/history")
+    assert r.status_code == 200
+    assert [row["id"] for row in r.json()] == [str(mid), str(last)]
+    assert r.json()[0]["supersededBy"] == str(last)
+    assert client.get("/memories/999999/history").status_code == 404
