@@ -276,3 +276,13 @@ def test_api_activity_cursor_and_approval_filters(client):
     assert client.get("/approvals", params={"status": "pending"}).json() == []
     assert client.get("/approvals", params={"status": "wrong"}).status_code == 400
     assert client.get("/approvals", params={"limit": 0}).status_code == 400
+
+
+def test_search_activity_endpoint(client):
+    api.memory.log_activity("chat", "Remember 50% done")
+    api.memory.log_activity("stop", "Remember the pause")
+    r = client.get("/activity/search", params={"q": "50%", "kind": "chat"})
+    assert r.status_code == 200 and len(r.json()) == 1
+    assert client.get("/activity/search", params={"q": "remember", "limit": 1}).json()[0]["kind"] == "stop"
+    assert client.get("/activity/search").status_code == 400
+    assert client.get("/activity/search", params={"q": "x", "limit": 501}).status_code == 400
