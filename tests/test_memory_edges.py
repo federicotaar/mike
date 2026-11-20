@@ -343,3 +343,12 @@ def test_memory_cursor_pages_exclude_new_and_superseded_rows():
     assert m.memory_page(kind="feedback")["items"]==[]
     for kwargs in ({"limit":0},{"limit":True},{"before_id":-1},{"kind":"bad"}):
         with pytest.raises(ValueError):m.memory_page(**kwargs)
+
+
+def test_activity_detail_lookup():
+    from agent.memory import Memory
+    m=Memory(":memory:")
+    aid=m.log_activity("chat","a particular event")
+    assert m.activity_by_id(aid)["summary"]=="a particular event"
+    assert m.activity_by_id(aid)["id"]==str(aid)
+    assert m.activity_by_id(aid+1) is None
