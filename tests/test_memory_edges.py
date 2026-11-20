@@ -324,3 +324,22 @@ def test_activity_retention_rejects_nonfinite_days():
         with pytest.raises(ValueError):
             m.prune_activity_older_than(days)
     assert m.count_activity() == 1
+
+
+def test_memory_cursor_pages_exclude_new_and_superseded_rows():
+    from agent.memory import Memory
+    import pytest
+    m=Memory(":memory:")
+    ids=[m.remember("fact",f"fact {i}") for i in range(5)]
+    m.correct(ids[1],"replacement")
+    first=m.memory_page(limit=2)
+    assert len(first["items"])==2 and first["nextBeforeId"]
+    m.remember("fact","arrived between pages")
+    second=m.memory_page(limit=2,before_id=int(first["nextBeforeId"]))
+    third=m.memory_page(limit=2,before_id=int(second["nextBeforeId"]))
+    all_ids=[r["id"] for p in (first,second,third) for r in p["items"]]
+    assert len(all_ids)==len(set(all_ids))==5 and str(ids[1]) not in all_ids
+    assert third["nextBeforeId"] is None
+    assert m.memory_page(kind="feedback")["items"]==[]
+    for kwargs in ({"limit":0},{"limit":True},{"before_id":-1},{"kind":"bad"}):
+        with pytest.raises(ValueError):m.memory_page(**kwargs)
