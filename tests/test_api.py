@@ -324,3 +324,10 @@ def test_memory_history_endpoint(client):
     assert [row["id"] for row in r.json()] == [str(mid), str(last)]
     assert r.json()[0]["supersededBy"] == str(last)
     assert client.get("/memories/999999/history").status_code == 404
+
+
+def test_approval_counts_endpoint(client):
+    aid = api.memory.request_approval("review", "details")
+    assert client.get("/approvals/counts").json() == {"pending": 1, "approved": 0, "denied": 0}
+    client.post(f"/approvals/{aid}", json={"approve": True})
+    assert client.get("/approvals/counts").json()["approved"] == 1
