@@ -260,3 +260,18 @@ def test_approval_history_status_filter(tmp_path):
         assert [x["id"] for x in m.approvals_history(status=state)] == [str(aid)]
     with pytest.raises(ValueError):
         m.approvals_history(status="executed")
+
+
+def test_activity_search_literal_and_kind():
+    from agent.memory import Memory
+    m = Memory(":memory:")
+    m.log_activity("chat", "Battery at 50%_low")
+    m.log_activity("stop", "battery offline")
+    assert len(m.search_activity("BATTERY")) == 2
+    assert len(m.search_activity("%_")) == 1
+    assert m.search_activity("battery", kind="chat")[0]["kind"] == "chat"
+    assert m.search_activity("not present") == []
+    import pytest
+    for q, limit in [(" ", 1), ("x", 0), ("x", True), ("x", 501)]:
+        with pytest.raises(ValueError):
+            m.search_activity(q, limit=limit)
