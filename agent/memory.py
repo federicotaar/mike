@@ -559,3 +559,22 @@ class Memory:
     def activity_by_id(self, activity_id: int) -> dict | None:
         row=self.db.execute("SELECT id,kind,summary,created_at FROM activity WHERE id=?",(activity_id,)).fetchone()
         return {"id":str(row[0]),"kind":row[1],"summary":row[2],"time":row[3]} if row else None
+
+    @synchronized
+    def approval_page(self, limit: int = 50, before_id: int | None = None,
+                      status: str | None = None) -> dict:
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("limit must be between 1 and 500")
+        if before_id is not None and (type(before_id) is not int or before_id < 1):
+            raise ValueError("before_id must be a positive integer")
+        if status is not None and status not in {"pending","approved","denied"}:
+            raise ValueError("unknown approval status")
+        clauses,params=[],[]
+        if before_id is not None:clauses.append("id<?");params.append(before_id)
+        if status is not None:clauses.append("status=?");params.append(status)
+        where=" WHERE "+" AND ".join(clauses) if clauses else ""
+        rows=self.db.execute("SELECT id,summary,detail,created_at,status FROM approvals"+where+
+                             " ORDER BY id DESC LIMIT ?",(*params,limit+1)).fetchall()
+        more=len(rows)>limit;rows=rows[:limit]
+        return {"items":[{"id":str(r[0]),"summary":r[1],"detail":r[2],"createdAt":r[3],"status":r[4]} for r in rows],
+                "nextBeforeId":str(rows[-1][0]) if more else None}
