@@ -318,3 +318,24 @@ def test_search_approvals_is_literal_and_filters_status():
             raise AssertionError("accepted a blank query")
         except ValueError:
             pass
+
+
+def test_stale_approvals_lists_only_old_pending_items():
+    import time
+    m = Memory(":memory:")
+    old = m.request_approval("old one", "x")
+    decided = m.request_approval("old but decided", "x")
+    fresh = m.request_approval("fresh", "x")
+    for i in (old, decided):
+        m.db.execute("UPDATE approvals SET created_at=? WHERE id=?", (time.time() - 5 * 86400, i))
+    m.db.commit()
+    m.decide_approval(decided, False)
+    assert [x["id"] for x in m.stale_approvals(3)] == [str(old)]
+    assert m.stale_approvals(10) == []
+    assert m.approval_by_id(fresh)["status"] == "pending"
+    for bad in (0, -1, float("nan"), True, "3"):
+        try:
+            m.stale_approvals(bad)
+            raise AssertionError(f"accepted {bad!r}")
+        except ValueError:
+            pass
