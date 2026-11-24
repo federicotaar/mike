@@ -410,6 +410,11 @@ class Memory:
         return {r[0]: r[1] for r in rows}
 
     @synchronized
+    def activity_kinds(self) -> list[str]:
+        """Distinct activity kinds in alphabetical order, for filter menus."""
+        return [x[0] for x in self.db.execute("SELECT DISTINCT kind FROM activity ORDER BY kind").fetchall()]
+
+    @synchronized
     def count_activity(self, kind: str | None = None) -> int:
         """Total activity rows (optionally one kind): recent_activity() pages
         through the log with before_id, callers need the total to show
