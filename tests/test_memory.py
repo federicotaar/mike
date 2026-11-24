@@ -299,3 +299,22 @@ def test_activity_page_walks_the_log_without_gaps():
             raise AssertionError(f"accepted {bad!r}")
         except ValueError:
             pass
+
+
+def test_search_approvals_is_literal_and_filters_status():
+    m = Memory(":memory:")
+    a = m.request_approval("Text Marco", "Reply about dinner")
+    b = m.request_approval("Email Anna", "100% done, see you Friday")
+    m.decide_approval(a, True)
+    assert [x["id"] for x in m.search_approvals("marco")] == [str(a)]
+    assert [x["id"] for x in m.search_approvals("DINNER")] == [str(a)]
+    assert [x["id"] for x in m.search_approvals("100%")] == [str(b)]
+    assert m.search_approvals("%") == [m.approval_by_id(b)]
+    assert m.search_approvals("marco", status="pending") == []
+    assert [x["status"] for x in m.search_approvals("marco", status="approved")] == ["approved"]
+    for bad in ("", "  "):
+        try:
+            m.search_approvals(bad)
+            raise AssertionError("accepted a blank query")
+        except ValueError:
+            pass
