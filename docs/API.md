@@ -131,6 +131,8 @@ means there are no older matching entries, not that the cursor is invalid.
 default 3), oldest first. It never approves or denies anything.
 `GET /approvals/search?q=` matches the summary or detail text literally (case-insensitive,
 `%` and `_` are not wildcards) and accepts `status` and `limit`. A blank `q` returns 400.
+`GET /activity/kinds` and `GET /memories/kinds` return the kinds present in the log and the
+supported memory kinds, so clients can build filter menus without hard-coding them.
 `GET /activity/page` returns `{items, nextBeforeId}` like `/memories/page` and `/approvals/page`:
 limit 1-500, an exclusive `before_id` cursor and an optional `kind`. `nextBeforeId` is
 null on the last page.
