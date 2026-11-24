@@ -327,6 +327,14 @@ async def start():
     return {"paused": False}
 
 
+@app.get("/activity/page")
+async def activity_page(limit: int = 50, before_id: int | None = None, kind: str = ""):
+    try:
+        return mem().activity_page(limit=limit, before_id=before_id, kind=kind.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/activity/search")
 async def search_activity(q: str = "", kind: str = "", limit: int = 100):
     """Find past activity without downloading the entire log."""
