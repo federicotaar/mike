@@ -360,3 +360,14 @@ def test_approval_page_endpoint(client):
     assert len(last["items"])==1 and last["nextBeforeId"] is None
     assert client.get("/approvals/page?status=bad").status_code==400
     assert client.get("/approvals/page?limit=501").status_code==400
+
+
+def test_activity_page_endpoint(client):
+    for i in range(3):
+        api.memory.log_activity("note", f"page entry {i}")
+    body = client.get("/activity/page", params={"limit": 2}).json()
+    assert [x["summary"] for x in body["items"]] == ["page entry 2", "page entry 1"]
+    older = client.get("/activity/page", params={"limit": 2, "before_id": body["nextBeforeId"]}).json()
+    assert [x["summary"] for x in older["items"]] == ["page entry 0"]
+    assert older["nextBeforeId"] is None
+    assert client.get("/activity/page", params={"limit": 0}).status_code == 400
