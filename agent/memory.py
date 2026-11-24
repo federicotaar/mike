@@ -309,6 +309,26 @@ class Memory:
         ]
 
     @synchronized
+    def search_approvals(self, query: str, limit: int = 50, status: str | None = None) -> list[dict]:
+        """Literal, case-insensitive search over approval summary and detail, newest first."""
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError("query must not be blank")
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("limit must be between 1 and 500")
+        if status is not None and status not in {"pending", "approved", "denied"}:
+            raise ValueError("unknown approval status")
+        where = "(instr(lower(summary), lower(?)) > 0 OR instr(lower(detail), lower(?)) > 0)"
+        params = [query, query]
+        if status is not None:
+            where += " AND status=?"
+            params.append(status)
+        rows = self.db.execute(
+            "SELECT id, summary, detail, created_at, status FROM approvals WHERE " + where +
+            " ORDER BY id DESC LIMIT ?", (*params, limit),
+        ).fetchall()
+        return [{"id": str(x[0]), "summary": x[1], "detail": x[2], "createdAt": x[3], "status": x[4]} for x in rows]
+
+    @synchronized
     def approval_by_id(self, approval_id: int) -> dict | None:
         """One approval in any status, or None - direct lookup, no history scan."""
         row = self.db.execute(
