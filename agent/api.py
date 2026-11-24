@@ -303,6 +303,13 @@ async def memory_page(limit: int = 50, before_id: int | None = None, kind: str =
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@app.get("/memories/kinds")
+async def memory_kinds():
+    """The memory kinds the API accepts, so clients need not hard-code them."""
+    from .memory import MEMORY_KINDS
+    return sorted(MEMORY_KINDS)
+
+
 @app.get("/memories/{memory_id}")
 async def get_memory(memory_id: int):
     row = mem().memory_by_id(memory_id)
