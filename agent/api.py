@@ -181,6 +181,15 @@ async def approval_page(limit: int = 50, before_id: int | None = None, status: s
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@app.get("/approvals/search")
+async def search_approvals(q: str = "", status: str = "", limit: int = 50):
+    """Find past approvals by summary or detail text."""
+    try:
+        return mem().search_approvals(q, limit=limit, status=status.strip() or None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/approvals/{approval_id}")
 async def get_approval(approval_id: int):
     """One approval in any status, for the detail view. Real 404 when unknown."""
