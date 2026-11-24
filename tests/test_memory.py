@@ -347,3 +347,16 @@ def test_activity_kinds_are_distinct_and_sorted():
     for kind in ("chat", "approval", "chat", "note"):
         m.log_activity(kind, "x")
     assert m.activity_kinds() == ["approval", "chat", "note"]
+
+
+def test_kv_delete_and_key_listing():
+    m = Memory(":memory:")
+    m.set_kv("ui:theme", "dark")
+    m.set_kv("ui:lang", "it")
+    m.set_kv("sync:last", "1")
+    assert m.kv_keys() == ["sync:last", "ui:lang", "ui:theme"]
+    assert m.kv_keys("ui:") == ["ui:lang", "ui:theme"]
+    assert m.delete_kv("ui:theme") is True
+    assert m.delete_kv("ui:theme") is False
+    assert m.get_kv("ui:theme", "gone") == "gone"
+    assert m.kv_keys("ui:") == ["ui:lang"]
