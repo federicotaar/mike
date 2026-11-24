@@ -131,6 +131,12 @@ class Memory:
         return rows.fetchall()
 
     @synchronized
+    def latest_memory(self, kind: str | None = None) -> dict | None:
+        """Newest active memory, optionally of one kind, or None."""
+        rows = self.recall(limit=1, kind=kind)
+        return {"id": rows[0][0], "kind": rows[0][1], "text": rows[0][2]} if rows else None
+
+    @synchronized
     def count_memories(self, kind: str | None = None) -> int:
         """How many active memories exist, optionally only one kind."""
         if kind is not None and kind not in MEMORY_KINDS:
