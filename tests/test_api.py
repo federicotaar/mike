@@ -371,3 +371,13 @@ def test_activity_page_endpoint(client):
     assert [x["summary"] for x in older["items"]] == ["page entry 0"]
     assert older["nextBeforeId"] is None
     assert client.get("/activity/page", params={"limit": 0}).status_code == 400
+
+
+def test_approval_search_endpoint(client):
+    api.memory.request_approval("text Marco", "about the match")
+    api.memory.request_approval("email Anna", "invoice question")
+    hits = client.get("/approvals/search", params={"q": "invoice"}).json()
+    assert [h["summary"] for h in hits] == ["email Anna"]
+    assert client.get("/approvals/search", params={"q": "invoice", "status": "denied"}).json() == []
+    assert client.get("/approvals/search", params={"q": " "}).status_code == 400
+    assert client.get("/approvals/search", params={"q": "x", "status": "maybe"}).status_code == 400
