@@ -268,3 +268,14 @@ def test_synchronized_holds_the_instance_lock_during_the_call():
             return self._lock.acquire(blocking=False)
 
     assert Dummy().probe() is False
+
+
+def test_remember_rejects_text_over_4000_characters():
+    m = Memory(":memory:")
+    assert m.remember("fact", "x" * 4000)
+    try:
+        m.remember("fact", "x" * 4001)
+        raise AssertionError("accepted an oversized memory")
+    except ValueError as exc:
+        assert "4000" in str(exc)
+    assert m.count_memories() == 1
