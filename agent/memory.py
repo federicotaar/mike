@@ -329,6 +329,18 @@ class Memory:
         return [{"id": str(x[0]), "summary": x[1], "detail": x[2], "createdAt": x[3], "status": x[4]} for x in rows]
 
     @synchronized
+    def stale_approvals(self, days: float) -> list[dict]:
+        """Pending approvals older than `days`, oldest first. Lists only; never decides anything."""
+        if isinstance(days, bool) or not isinstance(days, (int, float)) or not math.isfinite(days) or days <= 0:
+            raise ValueError("days must be a positive number")
+        cutoff = time.time() - days * 86400
+        rows = self.db.execute(
+            "SELECT id, summary, detail, created_at FROM approvals "
+            "WHERE status='pending' AND created_at<? ORDER BY created_at ASC, id ASC", (cutoff,),
+        ).fetchall()
+        return [{"id": str(x[0]), "summary": x[1], "detail": x[2], "createdAt": x[3], "status": "pending"} for x in rows]
+
+    @synchronized
     def approval_by_id(self, approval_id: int) -> dict | None:
         """One approval in any status, or None - direct lookup, no history scan."""
         row = self.db.execute(
