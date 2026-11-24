@@ -400,3 +400,7 @@ def test_activity_kinds_endpoint(client):
     api.memory.log_activity("note", "a")
     api.memory.log_activity("chat", "b")
     assert client.get("/activity/kinds").json() == ["chat", "note"]
+
+
+def test_memory_kinds_endpoint(client):
+    assert client.get("/memories/kinds").json() == ["fact", "feedback", "preference"]
