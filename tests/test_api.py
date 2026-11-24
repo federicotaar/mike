@@ -394,3 +394,9 @@ def test_stale_approvals_endpoint(client):
     assert client.get("/approvals/stale", params={"days": 30}).json() == []
     assert client.get("/approvals/stale", params={"days": 0}).status_code == 400
     assert client.get("/approvals/pending").json()[0]["summary"] == "waiting", "listing does not decide"
+
+
+def test_activity_kinds_endpoint(client):
+    api.memory.log_activity("note", "a")
+    api.memory.log_activity("chat", "b")
+    assert client.get("/activity/kinds").json() == ["chat", "note"]
