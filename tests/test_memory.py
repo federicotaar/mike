@@ -360,3 +360,19 @@ def test_kv_delete_and_key_listing():
     assert m.delete_kv("ui:theme") is False
     assert m.get_kv("ui:theme", "gone") == "gone"
     assert m.kv_keys("ui:") == ["ui:lang"]
+
+
+def test_latest_memory_ignores_superseded_and_filters_kind():
+    m = Memory(":memory:")
+    assert m.latest_memory() is None
+    a = m.remember("fact", "lives in Ferrara")
+    m.remember("preference", "likes short answers")
+    b = m.correct(a, "lives in Bondeno")
+    assert m.latest_memory()["id"] == b
+    assert m.latest_memory("preference")["text"] == "likes short answers"
+    assert m.latest_memory("feedback") is None
+    try:
+        m.latest_memory("nonsense")
+        raise AssertionError("accepted an unknown kind")
+    except ValueError:
+        pass
