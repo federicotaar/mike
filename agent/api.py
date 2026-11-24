@@ -190,6 +190,15 @@ async def search_approvals(q: str = "", status: str = "", limit: int = 50):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@app.get("/approvals/stale")
+async def stale_approvals(days: float = 3):
+    """Pending approvals that have waited more than `days` days (read-only)."""
+    try:
+        return mem().stale_approvals(days)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.get("/approvals/{approval_id}")
 async def get_approval(approval_id: int):
     """One approval in any status, for the detail view. Real 404 when unknown."""
