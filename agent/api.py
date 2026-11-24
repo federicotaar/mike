@@ -345,6 +345,12 @@ async def start():
     return {"paused": False}
 
 
+@app.get("/activity/kinds")
+async def activity_kinds():
+    """Kinds that actually occur in the log, for the filter menu."""
+    return mem().activity_kinds()
+
+
 @app.get("/activity/page")
 async def activity_page(limit: int = 50, before_id: int | None = None, kind: str = ""):
     try:
