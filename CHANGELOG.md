@@ -13,6 +13,10 @@ on the [Releases page](https://github.com/federicotaar/mike/releases).
 
 ## [Unreleased]
 
+- Memory: `remember` now enforces the same 4000 character limit as backup import.
+- Memory: `activity_page`, `search_approvals`, `stale_approvals`, `activity_kinds`, `latest_memory`, `delete_kv` and `kv_keys`.
+- API: `/activity/page`, `/approvals/search`, `/approvals/stale`, `/activity/kinds` and `/memories/kinds`, all read-only and behind the same token as the rest.
+
 - mike-watch tests: singular push wording ("1 new email") and the bounded dedupe window (a hash that falls out of the window notifies again, one still inside stays quiet) are now pinned.
 
 ### Fixed
