@@ -339,3 +339,11 @@ def test_stale_approvals_lists_only_old_pending_items():
             raise AssertionError(f"accepted {bad!r}")
         except ValueError:
             pass
+
+
+def test_activity_kinds_are_distinct_and_sorted():
+    m = Memory(":memory:")
+    assert m.activity_kinds() == []
+    for kind in ("chat", "approval", "chat", "note"):
+        m.log_activity(kind, "x")
+    assert m.activity_kinds() == ["approval", "chat", "note"]
