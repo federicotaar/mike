@@ -381,3 +381,16 @@ def test_approval_search_endpoint(client):
     assert client.get("/approvals/search", params={"q": "invoice", "status": "denied"}).json() == []
     assert client.get("/approvals/search", params={"q": " "}).status_code == 400
     assert client.get("/approvals/search", params={"q": "x", "status": "maybe"}).status_code == 400
+
+
+def test_stale_approvals_endpoint(client):
+    import time
+    i = api.memory.request_approval("waiting", "since last week")
+    api.memory.db.execute("UPDATE approvals SET created_at=? WHERE id=?", (time.time() - 8 * 86400, i))
+    api.memory.db.commit()
+    api.memory.request_approval("new", "just now")
+    stale = client.get("/approvals/stale", params={"days": 7}).json()
+    assert [s["summary"] for s in stale] == ["waiting"]
+    assert client.get("/approvals/stale", params={"days": 30}).json() == []
+    assert client.get("/approvals/stale", params={"days": 0}).status_code == 400
+    assert client.get("/approvals/pending").json()[0]["summary"] == "waiting", "listing does not decide"
