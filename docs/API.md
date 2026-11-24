@@ -127,4 +127,7 @@ older entries using the last entry's ID from the preceding page. The cursor
 is exclusive, positive and can be combined with `kind` and `limit`. This avoids
 duplicate entries when new activity arrives between pages. An empty result
 means there are no older matching entries, not that the cursor is invalid.
+`GET /activity/page` returns `{items, nextBeforeId}` like `/memories/page` and `/approvals/page`:
+limit 1-500, an exclusive `before_id` cursor and an optional `kind`. `nextBeforeId` is
+null on the last page.
 All these endpoints use the same bearer-token protection as the rest of the API.
