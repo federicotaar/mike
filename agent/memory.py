@@ -523,6 +523,19 @@ class Memory:
         self.db.commit()
 
     @synchronized
+    def delete_kv(self, key: str) -> bool:
+        """Remove a key; False when it did not exist."""
+        cur = self.db.execute("DELETE FROM kv WHERE key=?", (key,))
+        self.db.commit()
+        return cur.rowcount == 1
+
+    @synchronized
+    def kv_keys(self, prefix: str = "") -> list[str]:
+        """Stored keys in alphabetical order, optionally only those starting with `prefix`."""
+        rows = self.db.execute("SELECT key FROM kv ORDER BY key").fetchall()
+        return [x[0] for x in rows if x[0].startswith(prefix)]
+
+    @synchronized
     def search_activity(self, query: str, limit: int = 100, kind: str | None = None) -> list[dict]:
         """Search literal activity text without treating % and _ as wildcards."""
         if not isinstance(query, str) or not query.strip():
