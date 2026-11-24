@@ -72,6 +72,8 @@ class Memory:
             raise ValueError(f"unknown memory kind: {kind!r} (expected one of {sorted(MEMORY_KINDS)})")
         if not text.strip():
             raise ValueError("memory text must not be blank")
+        if len(text) > 4000:
+            raise ValueError("memory text must be at most 4000 characters")
         cur = self.db.execute(
             "INSERT INTO memories (kind, text, created_at) VALUES (?, ?, ?)",
             (kind, text, time.time()),
