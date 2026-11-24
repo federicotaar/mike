@@ -279,3 +279,23 @@ def test_remember_rejects_text_over_4000_characters():
     except ValueError as exc:
         assert "4000" in str(exc)
     assert m.count_memories() == 1
+
+
+def test_activity_page_walks_the_log_without_gaps():
+    m = Memory(":memory:")
+    for i in range(5):
+        m.log_activity("note" if i % 2 == 0 else "chat", f"entry {i}")
+    first = m.activity_page(limit=2)
+    assert [x["summary"] for x in first["items"]] == ["entry 4", "entry 3"]
+    second = m.activity_page(limit=2, before_id=int(first["nextBeforeId"]))
+    assert [x["summary"] for x in second["items"]] == ["entry 2", "entry 1"]
+    last = m.activity_page(limit=2, before_id=int(second["nextBeforeId"]))
+    assert [x["summary"] for x in last["items"]] == ["entry 0"]
+    assert last["nextBeforeId"] is None
+    assert [x["summary"] for x in m.activity_page(kind="chat")["items"]] == ["entry 3", "entry 1"]
+    for bad in ({"limit": 0}, {"limit": 501}, {"limit": True}, {"before_id": 0}):
+        try:
+            m.activity_page(**bad)
+            raise AssertionError(f"accepted {bad!r}")
+        except ValueError:
+            pass
